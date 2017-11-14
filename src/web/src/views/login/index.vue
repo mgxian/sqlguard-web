@@ -5,13 +5,35 @@
     .el-tabs__item
       width 50%
       text-align center
+      padding 0
+    .el-tabs__active-bar {
+      width 50%!important
+    }  
+.login-page
+  padding-top 10%
+  position absolute
+  left 0
+  right 0
+  top 0
+  bottom 0
+  background-color #2d3a4b
+
+  .el-tabs__item 
+    color #fff
+.el-switch__label
+  color #fff
+  
+.login-title
+  color #eee
 </style>
 
 <template>
-  <div>
+  <div class="login-page">
+    <h3 class="login-title">SQL检测系统</h3>
     <el-row type="flex" justify="center">
       <el-col :span="4">
         <div>
+
           <el-tabs v-model="activeName" class="login-tabs">
             <el-tab-pane label="登录" name="first">
               <el-form :model="login" :rules="userRules" ref="login">
