@@ -10,6 +10,7 @@
       width 50%!important
     }  
 .login-page
+  text-align center
   padding-top 10%
   position absolute
   left 0
