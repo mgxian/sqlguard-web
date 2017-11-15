@@ -1,7 +1,7 @@
 <template>
   <section class="app-main">
     <router-view :key="key"></router-view>
-    <p v-for="i in 100">xx</p>
+    <p v-for="i in 100" :key="i.id">xx</p>
   </section>
 </template>
 
