@@ -39,15 +39,14 @@
 
             <el-dropdown trigger="click" class="avatar-container">
               <div class="avatar-wrapper">
-                <img src="//www.famulei.com/images/header/famulei_logo.png" class="user-avatar">
+                <img src="//img1.famulei.com/zhubo/393180/picture/15/7/10/2015071015242348601_100x100.png" class="user-avatar">
                 <i class="el-icon-caret-bottom"></i>
               </div>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>黄金糕</el-dropdown-item>
-                <el-dropdown-item>狮子头</el-dropdown-item>
-                <el-dropdown-item>螺蛳粉</el-dropdown-item>
-                <el-dropdown-item disabled>双皮奶</el-dropdown-item>
-                <el-dropdown-item divided>蚵仔煎</el-dropdown-item>
+                <el-dropdown-item>首页</el-dropdown-item>
+                <el-dropdown-item>设置</el-dropdown-item>
+                <el-dropdown-item>管理员页面</el-dropdown-item>
+                <el-dropdown-item>登出</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
 
@@ -73,7 +72,7 @@ export default {
 
 
 <style lang="stylus">
-animateTime = 0.6s
+animateTime = 0.5s
 // 头部导航
 .el-header
   padding 0 0
@@ -97,19 +96,20 @@ animateTime = 0.6s
       color #bfcbd9
     .el-submenu
       .el-submenu__title
-        transition: 1s
+        transition animateTime
         .el-submenu__icon-arrow
           margin-right 15px
           font-size 15px
         &:hover
           background-color #48576a
       .el-menu
+        transition animateTime
         .el-menu-item-group
           .el-menu-item
             &:hover
               background-color #48576a
     >.el-menu-item
-      transition: animateTime
+      transition animateTime
       &:hover
         background-color #48576a
       &.is-active
@@ -152,15 +152,15 @@ animateTime = 0.6s
         >.el-submenu
           >.el-submenu__title
             padding-left 8px!important
-            transition: animateTime
+            transition animateTime
           >.el-menu
             padding-left 25px
-            transition: animateTime
+            transition animateTime
         >.el-menu-item
           padding-left 8px!important
-          transition: animateTime
+          transition animateTime
     .right-wrap
-      left 42px
+      left 41px
       z-index 10
     .hamburger-container
       .icon
