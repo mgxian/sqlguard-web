@@ -7,17 +7,15 @@
 
 </template>
 
-
 <script>
-export default {
-}
+export default {}
 </script>
 
 <style lang="stylus" scoped>
-  .nav
-    background-color: #eef1f6
-    position absolute
-    left 180px
-    right 0
-    top 0
+.nav
+  background-color #eef1f6
+  position absolute
+  left 180px
+  right 0
+  top 0
 </style>

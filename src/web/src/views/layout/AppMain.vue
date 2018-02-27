@@ -8,9 +8,8 @@
 <script>
 export default {
   name: 'AppMain',
-  data () {
-    return {
-    }
+  data() {
+    return {}
   },
   computed: {
     key() {
@@ -21,7 +20,6 @@ export default {
 </script>
 
 <style lang="stylus">
-  .app-main {
-    padding 20px 20px 20px 200px
-  }
+.app-main
+  padding 20px 20px 20px 200px
 </style>

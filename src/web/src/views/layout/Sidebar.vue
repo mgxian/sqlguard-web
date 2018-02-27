@@ -34,34 +34,23 @@
   right 0
   top 0
   bottom 0
-
-.el-menu 
+.el-menu
   .el-submenu
     padding-left 0
     position relative
-
     &.is-opened
       .el-menu
         background-color #1d2633
-
     .el-submenu__title
       &:hover
         background-color #48576a
-
-.el-menu .el-submenu {
-  padding-left: 0;
-  position:relative;
-}      
-
-.el-menu .el-submenu.is-opened {
-
-}
-
-.el-menu .el-submenu.is-opened .el-menu {
-  background-color:#1d2633;
-}
+.el-menu .el-submenu
+  padding-left 0
+  position relative
+.el-menu .el-submenu.is-opened
+.el-menu .el-submenu.is-opened .el-menu
+  background-color #1d2633
 </style>
-
 
 <script>
 export default {

@@ -6,9 +6,8 @@
       width 50%
       text-align center
       padding 0
-    .el-tabs__active-bar {
-      width 50%!important
-    }  
+    .el-tabs__active-bar
+      width 50% !important
 .login-page
   text-align center
   padding-top 10%
@@ -18,12 +17,10 @@
   top 0
   bottom 0
   background-color #2d3a4b
-
-  .el-tabs__item 
+  .el-tabs__item
     color #fff
 .el-switch__label
   color #fff
-  
 .login-title
   color #eee
 </style>

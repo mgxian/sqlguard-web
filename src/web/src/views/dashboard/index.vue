@@ -60,9 +60,9 @@
   </div>
 </template>
 
-<<script>
+<script>
 export default {
-  data () {
+  data() {
     return {
       sidebarCollapse: false
     }
@@ -70,13 +70,11 @@ export default {
 }
 </script>
 
-
 <style lang="stylus">
 animateTime = 0.5s
 // 头部导航
 .el-header
   padding 0 0
-
 // 侧边样导航初始样式
 .el-aside
   position fixed
@@ -143,7 +141,6 @@ animateTime = 0.5s
     transition-duration animateTime
 .el-icon-my-hamburger-bold
   font-size 25px
-
 // 点击折叠之后的样式
 .el-container
   &.collapse
@@ -151,13 +148,13 @@ animateTime = 0.5s
       >.el-menu
         >.el-submenu
           >.el-submenu__title
-            padding-left 8px!important
+            padding-left 8px !important
             transition animateTime
           >.el-menu
             padding-left 25px
             transition animateTime
         >.el-menu-item
-          padding-left 8px!important
+          padding-left 8px !important
           transition animateTime
     .right-wrap
       left 41px
