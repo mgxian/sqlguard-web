@@ -3,7 +3,7 @@
 
 from flask import Flask
 from flask import request
-from utils import sqladvisor, inception
+from .utils import sqladvisor, inception
 
 import logging
 logging.basicConfig(level=logging.DEBUG)

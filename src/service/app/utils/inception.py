@@ -31,13 +31,13 @@ use {};'.format(user, password, host, port, database)
         result = cur.fetchall()
         num_fields = len(cur.description)
         field_names = [i[0] for i in cur.description]
-        print field_names
+        print(field_names)
         res = ""
         for row in result:
             res += row[5] + "|" + row[4] + "|" + row[8] + "\n"
         cur.close()
         conn.close()
         return full_inception_sql + "\n" + res
-    except mysql.Error, e:
-        print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+    except mysql.Error as e:
+        print("Mysql Error %d: %s" % (e.args[0], e.args[1]))
         return "error"

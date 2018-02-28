@@ -1,9 +1,9 @@
 import os
 
-base_path = os.path.abspath(os.path.dirname(__name__))
+basedir = os.path.abspath(os.path.dirname(__name__))
 
 
-class Config
+class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     SQL_GUARD_ADMIN = os.environ.get('SQL_GUARD_ADMIN')
     SSL_REDIRECT = False
@@ -31,10 +31,10 @@ class ProdConfig(Config):
         Config.init_app(app)
 
 
-class DockerConfig(ProductionConfig):
+class DockerConfig(ProdConfig):
     @classmethod
     def init_app(cls, app):
-        ProductionConfig.init_app(app)
+        ProdConfig.init_app(app)
 
 
 config = {
