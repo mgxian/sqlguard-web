@@ -41,3 +41,8 @@ def deploy():
 def test():
     from app.schemas import test
     test()
+
+
+@app.cli.command()
+def run():
+    app.run('0.0.0.0')

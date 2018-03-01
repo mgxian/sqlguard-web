@@ -1,5 +1,6 @@
 from . import db
 from . import ma
+from .execeptions import ValidationError
 from .models import User, Role, Env, Mysql, Sql
 from marshmallow import fields, post_load
 import json
@@ -62,6 +63,11 @@ class UserPostSchema(ma.Schema):
     def make_user(self, data):
         u = User(**data)
         return u
+
+    def valid_data(self, data):
+        result = self.load(data)
+        d = result.data
+        e = result.errors
 
 
 class MysqlPostSchema(ma.Schema):
