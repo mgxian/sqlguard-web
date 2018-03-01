@@ -1,33 +1,43 @@
-# coding:utf8
+import os
+import sys
+import click
+from flask_migrate import Migrate, upgrade
+from app import create_app, db
+from app.models import User, Role, Env, Sql, Mysql
+
+try:
+    from dotenv import load_dotenv
+    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(dotenv_path):
+        load_dotenv(dotenv_path)
+except:
+    pass
+
+# print('-----before create app--------')
+app = create_app(os.getenv('SQL_GUARD_CONFIG') or 'default')
+migrate = Migrate(app, db)
+# print(app.config)
 
 
-from flask import Flask
-from flask import request
-from .utils import sqladvisor, inception
-
-import logging
-logging.basicConfig(level=logging.DEBUG)
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, User=User, Role=Role, Env=Env, Mysql=Mysql, Sql=Sql)
 
 
-app = Flask(__name__)
+@app.cli.command()
+def deploy():
+    """Run deployment tasks."""
+    # migrate database to latest revision
+    upgrade()
+
+    # create or update user roles
+    Role.insert_roles()
+
+    # create or update env
+    Env.insert_envs()
 
 
-@app.route('/sql', methods=['POST'])
-def sql():
-    if request.method == "POST":
-        data = request.json
-        res = sqladvisor.getResult(data["sql"])
-        #logging.warning(res)
-        return res
-
-
-@app.route('/inception', methods=['POST'])
-def sql_inception():
-    if request.method == "POST":
-        data = request.json
-        res = inception.get_result(data["sql"])
-        return res
-
-if __name__ == "__main__":
-    #app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+@app.cli.command()
+def test():
+    from app.schemas import test
+    test()
