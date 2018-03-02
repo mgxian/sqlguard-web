@@ -64,8 +64,8 @@ class UserPostSchema(ma.Schema):
         u = User(**data)
         return u
 
-    def get_user_or_error(self, data):
-        result = self.load(data)
+    def get_user_or_error(self, data, partial=False):
+        result = self.load(data, partial=partial)
         d = result.data
         e = result.errors
         if e:
@@ -96,7 +96,7 @@ class MysqlPostSchema(ma.Schema):
             return d
 
 
-class SqlSPostchema(ma.Schema):
+class SqlPostSchema(ma.Schema):
     sql = fields.Str(required=True)
 
     @post_load
