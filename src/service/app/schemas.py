@@ -64,10 +64,14 @@ class UserPostSchema(ma.Schema):
         u = User(**data)
         return u
 
-    def valid_data(self, data):
+    def get_user_or_error(self, data):
         result = self.load(data)
         d = result.data
         e = result.errors
+        if e:
+            raise ValidationError(json.dumps(e))
+        else:
+            return d
 
 
 class MysqlPostSchema(ma.Schema):
@@ -82,14 +86,32 @@ class MysqlPostSchema(ma.Schema):
         m = Mysql(**data)
         return m
 
+    def get_mysql_or_error(self, data):
+        result = self.load(data)
+        d = result.data
+        e = result.errors
+        if e:
+            raise ValidationError(json.dumps(e))
+        else:
+            return d
 
-class SqlSchema(ma.Schema):
+
+class SqlSPostchema(ma.Schema):
     sql = fields.Str(required=True)
 
     @post_load
     def make_sql(self, data):
         s = Sql(**data)
         return s
+
+    def get_sql_or_error(self, data):
+        result = self.load(data)
+        d = result.data
+        e = result.errors
+        if e:
+            raise ValidationError(json.dumps(e))
+        else:
+            return d
 
 
 def test():
