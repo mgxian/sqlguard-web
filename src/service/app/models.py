@@ -132,6 +132,9 @@ class Mysql(db.Model):
 
     def __init__(self, **kargs):
         super(Mysql, self).__init__(**kargs)
+        env_id = kargs.get('env_id')
+        if env_id is None:
+            self.env_id = Env.query.filter_by(default=True).first().id
 
     @property
     def password(self):

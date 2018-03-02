@@ -2,7 +2,7 @@ from flask import request, jsonify
 import logging
 from app import db
 from . import main
-from ..models import Sql, Mysql
+from ..models import Sql, Mysql, Env
 from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 
@@ -30,7 +30,11 @@ def create_mysql():
     data = request.json
     mysql_post = MysqlPostSchema().get_mysql_or_error(data)
     port = mysql_post.port if mysql_post.port else 3306
-    env_id = mysql_post.env_id if mysql_post.env_id else 0
+    if mysql_post.env_id:
+        env_id = mysql_post.env_id
+    else:
+        env_id = Env.query.filter_by(default=True).first().id
+    print(env_id)
     mysql = Mysql.query.filter_by(
         host=mysql_post.host, port=port,
         database=mysql_post.database,
@@ -54,7 +58,10 @@ def edit_mysql(id):
     data = request.json
     mysql_put = MysqlPutSchema().get_mysql_or_error(data)
     port = mysql_put.port if mysql_put.port else 3306
-    env_id = mysql_put.env_id if mysql_put.env_id else 0
+    if mysql_put.env_id:
+        env_id = mysql_put.env_id
+    else:
+        env_id = Env.query.filter_by(default=True).first().id
     mysql_check = Mysql.query.filter_by(
         host=mysql_put.host, port=port,
         database=mysql_put.database,
@@ -71,6 +78,8 @@ def edit_mysql(id):
         mysql.database = mysql_put.database
     if mysql_put.username:
         mysql.username = mysql_put.username
+    if mysql_put.env_id:
+        mysql.env_id = mysql_put.env_id
     db.session.commit()
     return jsonify(MysqlSchema().dump(mysql).data)
 

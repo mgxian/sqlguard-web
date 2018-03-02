@@ -98,6 +98,9 @@ class MysqlPutSchema(ma.Schema):
         if e:
             raise ValidationError(json.dumps(e))
         else:
+            env = Env.query.get(data.get('env_id'))
+            if env is None:
+                raise ValidationError(json.dumps({'env_id': 'env_id error'}))
             return d
 
 
