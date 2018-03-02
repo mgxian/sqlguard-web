@@ -43,20 +43,18 @@ class RoleSchema(ma.ModelSchema):
 
 class MysqlSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'host', 'port', 'database', 'username')
+        fields = ('id', 'host', 'port', 'database', 'username', 'env_id')
         model = Mysql
 
 
 class SqlSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'sql', 'result')
+        fields = ('id', 'sql', 'result', 'type', 'status')
         model = Sql
 
 
-class UserPostSchema(ma.Schema):
-    username = fields.Str(required=True)
-    password = fields.Str(required=True)
-    email = fields.Email(required=True)
+class UserPutSchema(ma.Schema):
+    email = fields.Email()
     name = fields.Str()
 
     @post_load
@@ -64,8 +62,8 @@ class UserPostSchema(ma.Schema):
         u = User(**data)
         return u
 
-    def get_user_or_error(self, data, partial=False):
-        result = self.load(data, partial=partial)
+    def get_user_or_error(self, data):
+        result = self.load(data)
         d = result.data
         e = result.errors
         if e:
@@ -74,12 +72,19 @@ class UserPostSchema(ma.Schema):
             return d
 
 
-class MysqlPostSchema(ma.Schema):
-    host = fields.Str(required=True)
+class UserPostSchema(UserPutSchema):
+    username = fields.Str(required=True)
+    password = fields.Str(required=True)
+    email = fields.Email(required=True)
+    name = fields.Str(required=True)
+
+
+class MysqlPutSchema(ma.Schema):
+    host = fields.Str()
     port = fields.Int()
-    database = fields.Str(required=True)
-    user = fields.Str()
-    password = fields.Str()
+    database = fields.Str()
+    username = fields.Str()
+    env_id = fields.Int()
 
     @post_load
     def make_mysql(self, data):
@@ -96,8 +101,15 @@ class MysqlPostSchema(ma.Schema):
             return d
 
 
-class SqlPostSchema(ma.Schema):
-    sql = fields.Str(required=True)
+class MysqlPostSchema(MysqlPutSchema):
+    host = fields.Str(required=True)
+    database = fields.Str(required=True)
+    password = fields.Str(required=True)
+
+
+class SqlPutSchema(ma.Schema):
+    sql = fields.Str()
+    type = fields.Int()
 
     @post_load
     def make_sql(self, data):
@@ -112,6 +124,10 @@ class SqlPostSchema(ma.Schema):
             raise ValidationError(json.dumps(e))
         else:
             return d
+
+
+class SqlPostSchema(SqlPutSchema):
+    sql = fields.Str(required=True)
 
 
 def test():

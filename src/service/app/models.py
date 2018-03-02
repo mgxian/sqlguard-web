@@ -158,16 +158,37 @@ class Mysql(db.Model):
         return '<Mysql %r %r %r>' % (self.host, self.port, self.db)
 
 
+class SqlType:
+    SQLADVISOR = 0
+    INCEPTION = 1
+
+
+class SqlStatus:
+    AUDIT = 0
+    CHEKING = 1
+    EXECUTING = 2
+    DONE = 3
+    FAILURE = -1
+
+
 class Sql(db.Model):
     __tablename__ = 'sqls'
     id = db.Column(db.Integer, primary_key=True)
     sql = db.Column(db.Text)
+    type = db.Column(db.Integer, default=SqlType.SQLADVISOR)
+    status = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     mysql_id = db.Column(db.Integer, db.ForeignKey('mysqls.id'))
     result = db.Column(db.Text)
 
     def __init__(self, **kargs):
         super(Sql, self).__init__(**kargs)
+        execute_flag = kargs.get('execute', False)
+        self.type = SqlType.INCEPTION if execute_flag else SqlType.SQLADVISOR
+        if self.type == SqlType.INCEPTION:
+            self.status = 0
+        else:
+            self.status = 1
 
     def to_json(self):
         json_sql = {

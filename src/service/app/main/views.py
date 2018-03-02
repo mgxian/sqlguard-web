@@ -3,7 +3,7 @@ import logging
 from app import db
 from . import main
 from ..models import Sql, Mysql
-from ..schemas import MysqlSchema, MysqlPostSchema, SqlSchema, SqlPostSchema
+from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 
 logging.basicConfig(level=logging.DEBUG)
@@ -30,10 +30,11 @@ def create_mysql():
     data = request.json
     mysql_post = MysqlPostSchema().get_mysql_or_error(data)
     port = mysql_post.port if mysql_post.port else 3306
+    env_id = mysql_post.env_id if mysql_post.env_id else 0
     mysql = Mysql.query.filter_by(
         host=mysql_post.host, port=port,
         database=mysql_post.database,
-        env_id=mysql_post.env_id).first()
+        env_id=env_id).first()
     if mysql:
         return conflict('数据库已存在')
     db.session.add(mysql_post)
@@ -43,13 +44,35 @@ def create_mysql():
 
 @main.route('/mysql/<int:id>')
 def get_mysql(id):
-    mysql = Mysql.get_or_404(id)
+    mysql = Mysql.query.get_or_404(id)
     return jsonify(MysqlSchema().dump(mysql).data)
 
 
 @main.route('/mysql/<int:id>', methods=['PUT'])
-def edit_mysql():
-    pass
+def edit_mysql(id):
+    mysql = Mysql.query.get_or_404(id)
+    data = request.json
+    mysql_put = MysqlPutSchema().get_mysql_or_error(data)
+    port = mysql_put.port if mysql_put.port else 3306
+    env_id = mysql_put.env_id if mysql_put.env_id else 0
+    mysql_check = Mysql.query.filter_by(
+        host=mysql_put.host, port=port,
+        database=mysql_put.database,
+        env_id=env_id).first()
+    print(env_id)
+    if mysql_check:
+        return conflict('数据库已存在')
+
+    if mysql_put.host:
+        mysql.host = mysql_put.host
+    if mysql_put.port:
+        mysql.port = mysql_put.port
+    if mysql_put.database:
+        mysql.database = mysql_put.database
+    if mysql_put.username:
+        mysql.username = mysql_put.username
+    db.session.commit()
+    return jsonify(MysqlSchema().dump(mysql).data)
 
 
 @main.route('/sqls', methods=['POST'])
@@ -62,11 +85,17 @@ def create_sql():
 
 
 @main.route('/sql/<int:id>')
-def get_sql():
-    sql = Sql.get_or_404(id)
+def get_sql(id):
+    sql = Sql.query.get_or_404(id)
     return jsonify(SqlSchema().dump(sql).data)
 
 
 @main.route('/sql/<int:id>', methods=['PUT'])
-def edit_sql():
-    pass
+def edit_sql(id):
+    sql = Sql.query.get_or_404(id)
+    data = request.json
+    sql_put = SqlPutSchema().get_sql_or_error(data)
+    if sql_put.sql:
+        sql.sql = sql_put.sql
+    db.session.commit()
+    return jsonify(SqlSchema().dump(sql).data)

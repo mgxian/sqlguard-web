@@ -3,7 +3,7 @@ from . import auth
 from app import db
 from ..models import User
 from ..execeptions import ValidationError
-from ..schemas import UserSchema, UserPostSchema
+from ..schemas import UserSchema, UserPutSchema, UserPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 from flask import request, jsonify, abort, g
 
@@ -31,17 +31,17 @@ def create_user():
 
 @auth.route('/user/<int:id>')
 def get_user(id):
-    user = User.query.get_or_404(id)
+    user = User.query.query.get_or_404(id)
     return jsonify(UserSchema().dump(user).data)
 
 
 @auth.route('/user/<int:id>', methods=['PUT'])
 def edit_user(id):
-    user = User.query.get_or_404(id)
+    user = User.query.query.get_or_404(id)
     if user.id != g.user_id:
         return forbidden('你没有修改权限')
     data = request.json
-    user_put = UserPostSchema().get_user_or_error(data, partial=True)
+    user_put = UserPutSchema().get_user_or_error(data)
     if user_put.name:
         user.name = user_put.name
     if user_put.email:
