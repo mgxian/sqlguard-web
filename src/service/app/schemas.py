@@ -49,12 +49,12 @@ class MysqlSchema(ma.ModelSchema):
 
 class SqlSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'sql', 'result', 'type', 'status')
+        fields = ('id', 'sql', 'result', 'type',
+                  'status', 'user_id', 'mysql_id')
         model = Sql
 
 
 class UserPutSchema(ma.Schema):
-    email = fields.Email()
     name = fields.Str()
 
     @post_load
@@ -63,6 +63,8 @@ class UserPutSchema(ma.Schema):
         return u
 
     def get_user_or_error(self, data):
+        if data is None:
+            raise ValidationError('need payload')
         result = self.load(data)
         d = result.data
         e = result.errors
@@ -92,15 +94,14 @@ class MysqlPutSchema(ma.Schema):
         return m
 
     def get_mysql_or_error(self, data):
+        if data is None:
+            raise ValidationError('need payload')
         result = self.load(data)
         d = result.data
         e = result.errors
         if e:
             raise ValidationError(json.dumps(e))
         else:
-            env = Env.query.get(data.get('env_id'))
-            if env is None:
-                raise ValidationError(json.dumps({'env_id': 'env_id error'}))
             return d
 
 
@@ -112,7 +113,6 @@ class MysqlPostSchema(MysqlPutSchema):
 
 class SqlPutSchema(ma.Schema):
     sql = fields.Str()
-    type = fields.Int()
 
     @post_load
     def make_sql(self, data):
@@ -120,6 +120,8 @@ class SqlPutSchema(ma.Schema):
         return s
 
     def get_sql_or_error(self, data):
+        if data is None:
+            raise ValidationError('need payload')
         result = self.load(data)
         d = result.data
         e = result.errors
@@ -131,6 +133,7 @@ class SqlPutSchema(ma.Schema):
 
 class SqlPostSchema(SqlPutSchema):
     sql = fields.Str(required=True)
+    type = fields.Int()
 
 
 def test():

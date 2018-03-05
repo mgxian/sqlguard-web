@@ -15,16 +15,16 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         roles = {
-            'User': [],
-            'Manager': [],
-            'Administrator': []
+            'User': '开发人员',
+            'Manager': '经理',
+            'Administrator': '管理员'
         }
 
         default_role = 'User'
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
-                role = Role(name=r)
+                role = Role(name=r, desc=roles[r])
             role.default = (default_role == role.name)
             db.session.add(role)
         db.session.commit()
@@ -61,7 +61,7 @@ class Env(db.Model):
         for e in envs:
             env = Env.query.filter_by(name=e).first()
             if env is None:
-                env = Env(name=e)
+                env = Env(name=e, desc=envs[e])
             env.default = (default_env == env.name)
             db.session.add(env)
         db.session.commit()
@@ -83,9 +83,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
+    name = db.Column(db.String(64))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
-    name = db.Column(db.String(64))
     sqls = db.relationship('Sql', backref='user', lazy='dynamic')
 
     def __init__(self, **kargs):
@@ -161,24 +161,26 @@ class Mysql(db.Model):
         return '<Mysql %r %r %r>' % (self.host, self.port, self.db)
 
 
-class SqlType:
-    SQLADVISOR = 0
-    INCEPTION = 1
+SqlType = {
+    'SQLADVISOR': 0,
+    'INCEPTION': 1
+}
 
 
-class SqlStatus:
-    AUDIT = 0
-    CHEKING = 1
-    EXECUTING = 2
-    DONE = 3
-    FAILURE = -1
+SqlStatus = {
+    'AUDIT': 0,
+    'CHEKING': 1,
+    'EXECUTING': 2,
+    'DONE': 3,
+    'FAILURE': -1,
+}
 
 
 class Sql(db.Model):
     __tablename__ = 'sqls'
     id = db.Column(db.Integer, primary_key=True)
     sql = db.Column(db.Text)
-    type = db.Column(db.Integer, default=SqlType.SQLADVISOR)
+    type = db.Column(db.Integer, default=SqlType['SQLADVISOR'])
     status = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     mysql_id = db.Column(db.Integer, db.ForeignKey('mysqls.id'))
@@ -186,17 +188,20 @@ class Sql(db.Model):
 
     def __init__(self, **kargs):
         super(Sql, self).__init__(**kargs)
-        execute_flag = kargs.get('execute', False)
-        self.type = SqlType.INCEPTION if execute_flag else SqlType.SQLADVISOR
-        if self.type == SqlType.INCEPTION:
-            self.status = 0
+        type = kargs.get('type', SqlType['SQLADVISOR'])
+        if type not in SqlType.values():
+            self.type = SqlType['SQLADVISOR']
+        if self.type == SqlType['INCEPTION']:
+            self.status = SqlStatus['AUDIT']
         else:
-            self.status = 1
+            self.status = SqlStatus['CHEKING']
 
     def to_json(self):
         json_sql = {
             'id': self.id,
             'sql': self.sql,
+            'type': self.type,
+            'status': self.status,
             'result': self.result
         }
         return json_sql
