@@ -13,6 +13,15 @@ def before_request():
     g.user_id = 1
 
 
+@auth.route('/users')
+def get_users():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    users = User.query.paginate(page=page, per_page=per_page).items
+    users_json = UserSchema(many=True).dump(users).data
+    return jsonify(users_json)
+
+
 @auth.route('/users', methods=['POST'])
 def create_user():
     data = request.json

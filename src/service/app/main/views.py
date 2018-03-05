@@ -3,7 +3,7 @@ import logging
 from app import db
 from . import main
 from ..models import Sql, Mysql, Env
-from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema
+from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema, EnvSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,6 +28,24 @@ def sql_inception():
     res = data["sql"]
     # logging.warning(res)
     return res
+
+
+@main.route('/envs')
+def get_envs():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    envs = Env.query.paginate(page=page, per_page=per_page).items
+    envs_json = EnvSchema(many=True).dump(envs).data
+    return jsonify(envs_json)
+
+
+@main.route('/mysqls')
+def get_mysqls():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    mysqls = Mysql.query.paginate(page=page, per_page=per_page).items
+    mysqls_json = MysqlSchema(many=True).dump(mysqls).data
+    return jsonify(mysqls_json)
 
 
 @main.route('/mysqls', methods=['POST'])
@@ -88,6 +106,16 @@ def edit_mysql(id):
         mysql.env_id = mysql_put.env_id
     db.session.commit()
     return jsonify(MysqlSchema().dump(mysql).data)
+
+
+@main.route('/mysql/<int:mysql_id>/sqls')
+def get_sqls(mysql_id):
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    mysql = Mysql.query.get_or_404(mysql_id)
+    sqls = mysql.sqls.paginate(page=page, per_page=per_page).items
+    sqls_json = SqlSchema(many=True).dump(sqls).data
+    return jsonify(sqls_json)
 
 
 @main.route('/mysql/<int:mysql_id>/sqls', methods=['POST'])
