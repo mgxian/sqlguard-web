@@ -1,4 +1,5 @@
 from flask import current_app
+from subprocess import Popen, PIPE
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from . import db
@@ -147,6 +148,20 @@ class Mysql(db.Model):
 
     def connect(self):
         pass
+
+    def get_sqladvisor(self, sql):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        password = s.loads(self.password_secret).get('password', '')
+        cmd_prefix = "/usr/local/bin/sqladvisor -h {}  -P {}  -u {} -p '{}' -d {} -v 2 -q \"".format(
+            self.host, self.port, self.username, password, self.database)
+        sql = sql.replace('"', '\\"')
+        sql = sql.replace('`', '\\`')
+        cmd = cmd_prefix + sql + '"'
+
+        # logging.warning(cmd)
+        res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
+
+        return res
 
     def to_json(self):
         json_mysql = {
