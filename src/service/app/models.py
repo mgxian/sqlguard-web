@@ -158,7 +158,7 @@ class Mysql(db.Model):
         return json_mysql
 
     def __repr__(self):
-        return '<Mysql %r %r %r>' % (self.host, self.port, self.db)
+        return '<Mysql %r %r %r>' % (self.host, self.port, self.database)
 
 
 SqlType = {
