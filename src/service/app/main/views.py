@@ -2,7 +2,7 @@ from flask import request, jsonify, g, abort
 import logging
 from app import db
 from . import main
-from ..models import Sql, Mysql, Env
+from ..models import Sql, Mysql, Env, SqlType, SqlStatus
 from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema, EnvSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 
@@ -149,3 +149,23 @@ def edit_sql(mysql_id, id):
         sql.sql = sql_put.sql
     db.session.commit()
     return jsonify(SqlSchema().dump(sql).data)
+
+
+@main.route('/mysql/<int:mysql_id>/sql/<int:id>/check', methods=['POST'])
+def check_sql(mysql_id, id):
+    sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
+    if sql is None:
+        return abort(404)
+    sql.result = sql.check()
+    db.session.commit()
+    return ('', 200)
+
+
+@main.route('/mysql/<int:mysql_id>/sql/<int:id>/execute', methods=['POST'])
+def execute_sql(mysql_id, id):
+    sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
+    if sql is None:
+        return abort(404)
+    sql.result = sql.execute()
+    db.session.commit()
+    return ('', 200)

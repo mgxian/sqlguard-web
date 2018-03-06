@@ -1,4 +1,5 @@
 from flask import current_app
+import _mysql as mysql_db
 from subprocess import Popen, PIPE
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
@@ -149,7 +150,7 @@ class Mysql(db.Model):
     def connect(self):
         pass
 
-    def get_sqladvisor(self, sql):
+    def get_sqladvisor_check_result(self, sql):
         s = Serializer(current_app.config['SECRET_KEY'])
         password = s.loads(self.password_secret).get('password', '')
         cmd_prefix = "/usr/local/bin/sqladvisor -h {}  -P {}  -u {} -p '{}' -d {} -v 2 -q \"".format(
@@ -158,10 +159,53 @@ class Mysql(db.Model):
         sql = sql.replace('`', '\\`')
         cmd = cmd_prefix + sql + '"'
 
+        print(cmd)
         # logging.warning(cmd)
-        res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
+        # res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
+        return cmd
 
-        return res
+    def get_inception_check_result(self, sql):
+        return self.execute_in_inception(sql, check=True)
+
+    def get_inception_execute_result(self, sql):
+        return self.execute_in_inception(sql, check=False)
+
+    def execute_in_inception(self, sql, check=True):
+        inception_host = current_app.config['INCEPTION_HOST']
+        inception_port = current_app.config['INCEPTION_HOST']
+
+        s = Serializer(current_app.config['SECRET_KEY'])
+        password = s.loads(self.password_secret).get('password', '')
+
+        inception_extra_args = '/*--check=1;' if check else '/*--execute=1;'
+        inception_prefix = '--user={};--password={};--host={};--port={};*/inception_magic_start;use {};'.format(
+            self.username, password, self.host, self.port, self.database)
+
+        if not sql.endswith(';'):
+            sql = sql + ';'
+
+        inception_suffix = 'inception_magic_commit;'
+        full_inception_sql = inception_extra_args + \
+            inception_prefix + sql + inception_suffix
+        return full_inception_sql
+        try:
+            conn = mysql_db.connect(host=inception_host, user='',
+                                    passwd='', db='', port=int(inception_port))
+            cur = conn.cursor()
+            ret = cur.execute(full_inception_sql)
+            result = cur.fetchall()
+            num_fields = len(cur.description)
+            field_names = [i[0] for i in cur.description]
+            print(field_names)
+            res = ""
+            for row in result:
+                res += row[5] + "|" + row[4] + "|" + row[8] + "\n"
+            cur.close()
+            conn.close()
+            return full_inception_sql + "\n" + res
+        except mysql_db.Error as e:
+            print("Mysql Error %d: %s" % (e.args[0], e.args[1]))
+            return "error"
 
     def to_json(self):
         json_mysql = {
@@ -211,6 +255,33 @@ class Sql(db.Model):
         else:
             self.status = SqlStatus['CHEKING']
 
+    @staticmethod
+    def on_changed_sql(target, value, oldvalue, initiator):
+        print('--------------->', target, initiator)
+        mysql = Sql.query.get(target.id).mysql
+        target.result = mysql.get_sqladvisor_result(value)
+
+    def get_sqladvisor_result(self):
+        return self.mysql.get_sqladvisor_result(self.sql)
+
+    def check(self):
+        if self.type == SqlType['SQLADVISOR']:
+            result = self.mysql.get_sqladvisor_check_result(self.sql)
+        elif self.type == SqlType['INCEPTION']:
+            result = self.mysql.get_inception_check_result(self.sql)
+        else:
+            result = ''
+        print('--------------->check ', result)
+        return result
+
+    def execute(self):
+        if self.type == SqlType['INCEPTION']:
+            result = self.mysql.get_inception_execute_result(self.sql)
+        else:
+            result = ''
+        print('--------------->check ', result)
+        return result
+
     def to_json(self):
         json_sql = {
             'id': self.id,
@@ -223,3 +294,6 @@ class Sql(db.Model):
 
     def __repr__(self):
         return '<Sql %r>' % self.sql
+
+
+db.event.listen(Sql.sql, 'set', Sql.on_changed_sql)
