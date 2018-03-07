@@ -1,10 +1,13 @@
+# coding:utf8
+import logging
 from flask import current_app
-import _mysql as mysql_db
+import MySQLdb as mysql_db
 from subprocess import Popen, PIPE
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from . import db
 
+logging.basicConfig(filename='/tmp/sqlguard.log',level=logging.DEBUG)
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -160,9 +163,10 @@ class Mysql(db.Model):
         cmd = cmd_prefix + sql + '"'
 
         print(cmd)
+        logging.info(cmd)
         # logging.warning(cmd)
-        # res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
-        return cmd
+        res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
+        return res
 
     def get_inception_check_result(self, sql):
         return self.execute_in_inception(sql, check=True)
@@ -172,7 +176,7 @@ class Mysql(db.Model):
 
     def execute_in_inception(self, sql, check=True):
         inception_host = current_app.config['INCEPTION_HOST']
-        inception_port = current_app.config['INCEPTION_HOST']
+        inception_port = current_app.config['INCEPTION_PORT']
 
         s = Serializer(current_app.config['SECRET_KEY'])
         password = s.loads(self.password_secret).get('password', '')
@@ -187,7 +191,7 @@ class Mysql(db.Model):
         inception_suffix = 'inception_magic_commit;'
         full_inception_sql = inception_extra_args + \
             inception_prefix + sql + inception_suffix
-        return full_inception_sql
+        # return full_inception_sql
         try:
             conn = mysql_db.connect(host=inception_host, user='',
                                     passwd='', db='', port=int(inception_port))
@@ -198,11 +202,17 @@ class Mysql(db.Model):
             field_names = [i[0] for i in cur.description]
             print(field_names)
             res = ""
-            for row in result:
+            for row in result[1:]:
                 res += row[5] + "|" + row[4] + "|" + row[8] + "\n"
             cur.close()
             conn.close()
-            return full_inception_sql + "\n" + res
+            # return full_inception_sql + "\n" + res
+            print('---------->')
+            print(full_inception_sql)
+            print(res)
+            logging.info(full_inception_sql)
+            logging.info(res)
+            return res
         except mysql_db.Error as e:
             print("Mysql Error %d: %s" % (e.args[0], e.args[1]))
             return "error"
@@ -296,4 +306,4 @@ class Sql(db.Model):
         return '<Sql %r>' % self.sql
 
 
-db.event.listen(Sql.sql, 'set', Sql.on_changed_sql)
+# db.event.listen(Sql.sql, 'set', Sql.on_changed_sql)

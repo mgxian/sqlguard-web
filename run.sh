@@ -7,7 +7,15 @@ docker build -t sqlguard-web .
 docker rm -f sqlguard-web-test && echo 'delete' || echo 'not exist'
 
 # run
-docker run --name sqlguard-web-test -d -p 5000:5000 -p 5506:5506 sqlguard-web
+docker run --name sqlguard-web-test \
+-p 5000:5000 \
+-p 5506:5506 \
+-e DEV_DATABASE_URL='mysql+pymysql://root:mgx123@11.11.11.111:3306/sqlguard?charset=utf8' \
+-e SQL_GUARD_ADMIN='will@will.com' \
+-e INCEPTION_HOST='127.0.0.1' \
+-e INCEPTION_PORT=5506 \
+-d sqlguard-web
 
 # log
-docker logs -f sqlguard-web-test
+sleep 1
+docker exec -ti sqlguard-web-test tail -f /code/gunicorn.log

@@ -1,3 +1,4 @@
+# coding:utf8
 from flask import request, jsonify, g, abort
 import logging
 from app import db
@@ -157,6 +158,7 @@ def check_sql(mysql_id, id):
     if sql is None:
         return abort(404)
     sql.result = sql.check()
+    print(sql.result)
     db.session.commit()
     return ('', 200)
 
@@ -167,5 +169,6 @@ def execute_sql(mysql_id, id):
     if sql is None:
         return abort(404)
     sql.result = sql.execute()
+    print(sql.result)
     db.session.commit()
     return ('', 200)

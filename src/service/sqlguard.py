@@ -1,6 +1,7 @@
 import os
 import sys
 import click
+import logging
 from flask_migrate import Migrate, upgrade
 from app import create_app, db
 from app.models import User, Role, Env, Sql, Mysql

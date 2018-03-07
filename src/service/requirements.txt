@@ -7,3 +7,5 @@ flask_sqlalchemy
 flask_migrate
 flask_marshmallow
 marshmallow-sqlalchemy
+mysql
+mysqlclient
