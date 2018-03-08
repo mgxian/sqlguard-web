@@ -1,3 +1,4 @@
+# coding:utf8
 import json
 from . import main
 from flask import jsonify
@@ -14,6 +15,12 @@ def myerror(e):
     response.status_code = 400
     return response
 
+@main.app_errorhandler(401)
+def unauthorized(e):
+    msg = "你没有足够的权限"
+    response = jsonify({'msg': msg})
+    response.status_code = 401
+    return response
 
 @main.app_errorhandler(404)
 def not_found(e):

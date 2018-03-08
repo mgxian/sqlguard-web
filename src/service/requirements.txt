@@ -3,6 +3,7 @@ pymysql
 gunicorn
 dotenv
 click
+flask_jwt
 flask_sqlalchemy
 flask_migrate
 flask_marshmallow

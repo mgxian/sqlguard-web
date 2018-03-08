@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__name__))
 
@@ -12,6 +13,9 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     SQL_GUARD_SLOW_DB_QUERY_TIME = 0.5
     SQLALCHEMY_POOL_RECYCLE = 100
+    JWT_AUTH_URL_RULE = '/oauth2/token'
+    JWT_AUTH_HEADER_PREFIX = 'Bearer'
+    JWT_EXPIRATION_DELTA = timedelta(seconds=3600*3)
 
     @staticmethod
     def init_app(app):
@@ -20,6 +24,7 @@ class Config:
 
 class DevConfig(Config):
     DEBUG = True
+    JWT_EXPIRATION_DELTA = timedelta(seconds=3600*12*20)
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 

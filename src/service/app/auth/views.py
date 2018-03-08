@@ -7,14 +7,12 @@ from ..execeptions import ValidationError
 from ..schemas import UserSchema, UserPutSchema, UserPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 from flask import request, jsonify, abort, g
-
-
-@auth.before_request
-def before_request():
-    g.user_id = 1
+from flask_jwt import current_identity, jwt_required
+import logging
 
 
 @auth.route('/users')
+@jwt_required()
 def get_users():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
@@ -40,12 +38,14 @@ def create_user():
 
 
 @auth.route('/user/<int:id>')
+@jwt_required()
 def get_user(id):
     user = User.query.get_or_404(id)
     return jsonify(UserSchema().dump(user).data)
 
 
 @auth.route('/user/<int:id>', methods=['PUT'])
+@jwt_required()
 def edit_user(id):
     user = User.query.get_or_404(id)
     if user.id != g.user_id:
@@ -59,15 +59,11 @@ def edit_user(id):
 
 
 @auth.route('/user/<int:id>/change_password', methods=['POST'])
+@jwt_required()
 def change_password(id):
     pass
 
 
 @auth.route('/user/<int:id>/rest_password', methods=['POST'])
 def rest_password(id):
-    pass
-
-
-@auth.route('/oauth2/token', methods=['POST'])
-def create_token():
     pass

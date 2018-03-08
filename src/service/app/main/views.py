@@ -3,35 +3,51 @@ from flask import request, jsonify, g, abort
 import logging
 from app import db
 from . import main
-from ..models import Sql, Mysql, Env, SqlType, SqlStatus
+from ..models import Sql, Mysql, Env, SqlType, SqlStatus, Permission
 from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema, EnvSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
+from flask_jwt import jwt_required, current_identity
+from ..decorators import permission_required
+from flask import current_app
+import jwt
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-@main.before_request
+@main.before_app_request
 def before_request():
-    g.user_id = 1
+    auth_uri = current_app.config['JWT_AUTH_URL_RULE']
+    secret_key = current_app.config['SECRET_KEY']
+    auth_header = request.headers.get('Authorization')
+    if request.path != auth_uri:
+        if auth_header:
+            logging.debug('auth_header------> ')
+            logging.debug(auth_header)
+            try:
+                payload = jwt.decode(
+                    auth_header[7:], secret_key, algorithms=['HS256'])
+            except:
+                return unauthorized('token不正确')
+            else:
+                logging.debug(payload)
+                g.user_id = payload.get('identity', 0)
+        else:
+            return unauthorized('需要认证')
 
 
-@main.route('/sql', methods=['POST'])
-def sql():
-    data = request.json
-    res = data["sql"]
-    # logging.warning(res)
-    return res
-
-
-@main.route('/inception', methods=['POST'])
-def sql_inception():
-    data = request.json
-    res = data["sql"]
-    # logging.warning(res)
-    return res
+@main.after_app_request
+def after_request(response):
+    auth_uri = current_app.config['JWT_AUTH_URL_RULE']
+    if request.path == auth_uri:
+        logging.debug(response.status_code)
+        if response.status_code == 401:
+            return unauthorized('用户名和密码不匹配')
+        return response
+    return response
 
 
 @main.route('/envs')
+@jwt_required()
 def get_envs():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
@@ -41,6 +57,7 @@ def get_envs():
 
 
 @main.route('/mysqls')
+@jwt_required()
 def get_mysqls():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
@@ -50,6 +67,8 @@ def get_mysqls():
 
 
 @main.route('/mysqls', methods=['POST'])
+@jwt_required()
+@permission_required(Permission.EXECUTE)
 def create_mysql():
     data = request.json
     mysql_post = MysqlPostSchema().get_mysql_or_error(data)
@@ -70,12 +89,15 @@ def create_mysql():
 
 
 @main.route('/mysql/<int:id>')
+@jwt_required()
 def get_mysql(id):
     mysql = Mysql.query.get_or_404(id)
     return jsonify(MysqlSchema().dump(mysql).data)
 
 
 @main.route('/mysql/<int:id>', methods=['PUT'])
+@jwt_required()
+@permission_required(Permission.EXECUTE)
 def edit_mysql(id):
     mysql = Mysql.query.get_or_404(id)
     data = request.json
@@ -110,6 +132,7 @@ def edit_mysql(id):
 
 
 @main.route('/mysql/<int:mysql_id>/sqls')
+@jwt_required()
 def get_sqls(mysql_id):
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
@@ -120,6 +143,7 @@ def get_sqls(mysql_id):
 
 
 @main.route('/mysql/<int:mysql_id>/sqls', methods=['POST'])
+@jwt_required()
 def create_sql(mysql_id):
     data = request.json
     sql_post = SqlPostSchema().get_sql_or_error(data)
@@ -131,6 +155,7 @@ def create_sql(mysql_id):
 
 
 @main.route('/mysql/<int:mysql_id>/sql/<int:id>')
+@jwt_required()
 def get_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql:
@@ -140,6 +165,7 @@ def get_sql(mysql_id, id):
 
 
 @main.route('/mysql/<int:mysql_id>/sql/<int:id>', methods=['PUT'])
+@jwt_required()
 def edit_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql is None:
@@ -148,11 +174,13 @@ def edit_sql(mysql_id, id):
     sql_put = SqlPutSchema().get_sql_or_error(data)
     if sql_put.sql:
         sql.sql = sql_put.sql
+        sql.result = ''
     db.session.commit()
     return jsonify(SqlSchema().dump(sql).data)
 
 
 @main.route('/mysql/<int:mysql_id>/sql/<int:id>/check', methods=['POST'])
+@jwt_required()
 def check_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql is None:
@@ -164,6 +192,8 @@ def check_sql(mysql_id, id):
 
 
 @main.route('/mysql/<int:mysql_id>/sql/<int:id>/execute', methods=['POST'])
+@jwt_required()
+@permission_required(Permission.EXECUTE)
 def execute_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql is None:

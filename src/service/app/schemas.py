@@ -136,6 +136,21 @@ class SqlPostSchema(SqlPutSchema):
     type = fields.Int()
 
 
+class LoginSchema(ma.Schema):
+    username = fields.Str(required=True)
+    password = fields.Str(required=True)
+
+    def get_login_or_error(self, data):
+        if data is None:
+            raise ValidationError('need payload')
+        result = self.load(data)
+        d = result.data
+        e = result.errors
+        if e:
+            raise ValidationError(json.dumps(e))
+        else:
+            return d
+
 def test():
     role = Role.query.filter_by(name='User').first()
     role_schema = RoleSchema()
