@@ -14,6 +14,8 @@ docker run --name sqlguard-web-test \
 -e SQL_GUARD_ADMIN='will@will.com' \
 -e INCEPTION_HOST='127.0.0.1' \
 -e INCEPTION_PORT=5506 \
+-e MAIL_USERNAME=niupu_monitor@163.com \
+-e MAIL_PASSWORD=yrtlkepdanarzaql \
 -d sqlguard-web
 
 # log

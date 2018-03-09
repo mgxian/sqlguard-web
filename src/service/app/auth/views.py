@@ -6,9 +6,10 @@ from ..models import User
 from ..execeptions import ValidationError
 from ..schemas import UserSchema, UserPutSchema, UserPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
-from flask import request, jsonify, abort, g
+from flask import request, jsonify, abort, g, url_for
 from flask_jwt import current_identity, jwt_required
 import logging
+from ..email import send_email
 
 
 @auth.route('/users')
@@ -48,7 +49,7 @@ def get_user(id):
 @jwt_required()
 def edit_user(id):
     user = User.query.get_or_404(id)
-    if user.id != g.user_id:
+    if user.id != current_identity.id:
         return forbidden('你没有修改权限')
     data = request.json
     user_put = UserPutSchema().get_user_or_error(data)
@@ -61,9 +62,51 @@ def edit_user(id):
 @auth.route('/user/<int:id>/change_password', methods=['POST'])
 @jwt_required()
 def change_password(id):
-    pass
+    user = User.query.get_or_404(id)
+    if user.id != current_identity.id:
+        return forbidden('你没有修改权限')
+    data = request.json
+    password_old = data.get('password_old')
+    password_new = data.get('password_new')
+    if password_old is None:
+        return bad_request("旧密码不能为空")
+    if password_new is None:
+        return bad_request("新密码不能为空")
+
+    if not user.verify_password(password_old):
+        return bad_request("旧密码不正确")
+
+    user.password = password_new
+    db.session.commit()
+
+    return ('', 200)
 
 
-@auth.route('/user/<int:id>/rest_password', methods=['POST'])
-def rest_password(id):
-    pass
+@auth.route('/user/<string:username>/rest_password')
+def mail_rest_password_token(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        return ('', 404)
+    token = user.generate_password_reset_token()
+    subject = "重置密码"
+    content = url_for('auth.rest_password', username=username, token=token)
+    send_email(user.email, subject, content)
+    return ('', 200)
+
+
+@auth.route('/user/<string:username>/rest_password', methods=['POST'])
+def rest_password(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        return ('', 404)
+    data = request.json
+    if data is None:
+        return bad_request('need payload')
+    token = data.get('token')
+    password = data.get('password')
+    if token is None or password is None:
+        return bad_request('请求参数不正确')
+    if user.rest_password(token, password):
+        return ('', 200)
+
+    return bad_request('验证不成功')

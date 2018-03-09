@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from . import db
 
-logging.basicConfig(filename='/tmp/sqlguard.log', level=logging.DEBUG)
+#logging.basicConfig(filename='/tmp/sqlguard.log', level=logging.DEBUG)
 
 
 class Permission:
@@ -146,6 +146,26 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_password_reset_token(self):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        token = s.dumps({'id': self.id})
+        return token.decode("utf-8")
+
+    def rest_password(self, token, password):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        id = data.get('id')
+        if id is None:
+            return False
+        if self.id == id:
+            self.password = password
+            return True
+        else:
+            return False
 
     def can(self, perm):
         return self.role is not None and self.role.has_permission(perm)

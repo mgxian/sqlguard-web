@@ -14,38 +14,6 @@ import jwt
 logging.basicConfig(level=logging.DEBUG)
 
 
-@main.before_app_request
-def before_request():
-    auth_uri = current_app.config['JWT_AUTH_URL_RULE']
-    secret_key = current_app.config['SECRET_KEY']
-    auth_header = request.headers.get('Authorization')
-    if request.path != auth_uri:
-        if auth_header:
-            logging.debug('auth_header------> ')
-            logging.debug(auth_header)
-            try:
-                payload = jwt.decode(
-                    auth_header[7:], secret_key, algorithms=['HS256'])
-            except:
-                return unauthorized('token不正确')
-            else:
-                logging.debug(payload)
-                g.user_id = payload.get('identity', 0)
-        else:
-            return unauthorized('需要认证')
-
-
-@main.after_app_request
-def after_request(response):
-    auth_uri = current_app.config['JWT_AUTH_URL_RULE']
-    if request.path == auth_uri:
-        logging.debug(response.status_code)
-        if response.status_code == 401:
-            return unauthorized('用户名和密码不匹配')
-        return response
-    return response
-
-
 @main.route('/envs')
 @jwt_required()
 def get_envs():
@@ -147,7 +115,7 @@ def get_sqls(mysql_id):
 def create_sql(mysql_id):
     data = request.json
     sql_post = SqlPostSchema().get_sql_or_error(data)
-    sql_post.user_id = g.user_id
+    sql_post.user_id = current_identity.id
     sql_post.mysql_id = mysql_id
     db.session.add(sql_post)
     db.session.commit()

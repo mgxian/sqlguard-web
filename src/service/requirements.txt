@@ -3,10 +3,10 @@ pymysql
 gunicorn
 dotenv
 click
+mysql
 flask_jwt
+flask_mail
 flask_sqlalchemy
 flask_migrate
 flask_marshmallow
 marshmallow-sqlalchemy
-mysql
-mysqlclient
