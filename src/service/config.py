@@ -16,6 +16,7 @@ class Config:
     JWT_AUTH_URL_RULE = '/oauth2/token'
     JWT_AUTH_HEADER_PREFIX = 'Bearer'
     JWT_EXPIRATION_DELTA = timedelta(seconds=3600*3)
+    PASSWORD_RESET_URI='/user/reset_password'
 
     # mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.163.com')
@@ -25,7 +26,7 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SQL_GUARD_MAIL_SUBJECT_PREFIX = '[sqlguard]'
-    SQL_GUARD_MAIL_SENDER = 'Sqlguard Admin <sqlguard@example.com>'
+    SQL_GUARD_MAIL_SENDER = 'Sqlguard Admin <niupu_monitor@163.com>'
 
     @staticmethod
     def init_app(app):

@@ -6,7 +6,7 @@ from ..models import User
 from ..execeptions import ValidationError
 from ..schemas import UserSchema, UserPutSchema, UserPostSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
-from flask import request, jsonify, abort, g, url_for
+from flask import request, jsonify, abort, g, url_for, current_app
 from flask_jwt import current_identity, jwt_required
 import logging
 from ..email import send_email
@@ -82,20 +82,23 @@ def change_password(id):
     return ('', 200)
 
 
-@auth.route('/user/<string:username>/rest_password')
-def mail_rest_password_token(username):
+@auth.route('/user/<string:username>/reset_password')
+def mail_reset_password_token(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         return ('', 404)
     token = user.generate_password_reset_token()
     subject = "重置密码"
-    content = url_for('auth.rest_password', username=username, token=token)
+    content = request.host_url + \
+        current_app.config['PASSWORD_RESET_URI'][1:] + \
+        '?username={}&token={}'.format(username, token)
+    logging.debug(content)
     send_email(user.email, subject, content)
     return ('', 200)
 
 
-@auth.route('/user/<string:username>/rest_password', methods=['POST'])
-def rest_password(username):
+@auth.route('/user/<string:username>/reset_password', methods=['POST'])
+def reset_password(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         return ('', 404)
@@ -106,7 +109,6 @@ def rest_password(username):
     password = data.get('password')
     if token is None or password is None:
         return bad_request('请求参数不正确')
-    if user.rest_password(token, password):
+    if user.reset_password(token, password):
         return ('', 200)
-
     return bad_request('验证不成功')

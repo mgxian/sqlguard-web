@@ -6,8 +6,12 @@ from subprocess import Popen, PIPE
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from . import db
+import platform
 
-#logging.basicConfig(filename='/tmp/sqlguard.log', level=logging.DEBUG)
+if 'Linux' in platform.platform():
+    logging.basicConfig(filename='/tmp/sqlguard.log', level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.DEBUG)
 
 
 class Permission:
@@ -152,7 +156,7 @@ class User(db.Model):
         token = s.dumps({'id': self.id})
         return token.decode("utf-8")
 
-    def rest_password(self, token, password):
+    def reset_password(self, token, password):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
@@ -163,6 +167,7 @@ class User(db.Model):
             return False
         if self.id == id:
             self.password = password
+            db.session.commit()
             return True
         else:
             return False

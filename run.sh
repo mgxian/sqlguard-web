@@ -11,11 +11,11 @@ docker run --name sqlguard-web-test \
 -p 5000:5000 \
 -p 5506:5506 \
 -e DEV_DATABASE_URL='mysql+pymysql://root:mgx123@11.11.11.111:3306/sqlguard?charset=utf8' \
--e SQL_GUARD_ADMIN='will@will.com' \
+-e SQL_GUARD_ADMIN='will835559313@163.com' \
 -e INCEPTION_HOST='127.0.0.1' \
 -e INCEPTION_PORT=5506 \
 -e MAIL_USERNAME=niupu_monitor@163.com \
--e MAIL_PASSWORD=yrtlkepdanarzaql \
+-e MAIL_PASSWORD=$MAIL_PASSWORD \
 -d sqlguard-web
 
 # log
