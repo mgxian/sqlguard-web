@@ -3,8 +3,8 @@ from flask import request, jsonify, g, abort
 import logging
 from app import db
 from . import main
-from ..models import Sql, Mysql, Env, SqlType, SqlStatus, Permission
-from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema, EnvSchema
+from ..models import Sql, Mysql, Env, SqlType, SqlStatus, Permission, Role, User
+from ..schemas import MysqlSchema, MysqlPutSchema, MysqlPostSchema, SqlSchema, SqlPutSchema, SqlPostSchema, EnvSchema, RoleSchema
 from ..errors import bad_request, unauthorized, forbidden, conflict
 from flask_jwt import jwt_required, current_identity
 from ..decorators import permission_required
@@ -22,6 +22,16 @@ def get_envs():
     envs = Env.query.paginate(page=page, per_page=per_page).items
     envs_json = EnvSchema(many=True).dump(envs).data
     return jsonify(envs_json)
+
+
+@main.route('/roles')
+@jwt_required()
+def get_roles():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    roles = Role.query.paginate(page=page, per_page=per_page).items
+    roles_json = RoleSchema(many=True).dump(roles).data
+    return jsonify(roles_json)
 
 
 @main.route('/mysqls')
@@ -168,5 +178,20 @@ def execute_sql(mysql_id, id):
         return abort(404)
     sql.result = sql.execute()
     print(sql.result)
+    db.session.commit()
+    return ('', 200)
+
+
+@main.route('/user/<int:id>/role', methods=['POST'])
+@jwt_required()
+@permission_required(Permission.ADMIN)
+def assign_role(id):
+    user = User.query.get_or_404(id)
+    if not request.is_json:
+        return bad_request('need payload')
+    role_id = request.json.get('role_id')
+    if role_id is None:
+        return bad_request('nedd role_id')
+    user.role_id = role_id
     db.session.commit()
     return ('', 200)
