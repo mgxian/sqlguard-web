@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <!-- <img src="./assets/logo.png"> -->
-    <router-view/>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -10,13 +9,3 @@ export default {
   name: 'app'
 }
 </script>
-
-<style>
-body {
-  margin: 0;
-  padding: 0;
-}
-#app {
-  margin-top: 0px;
-}
-</style>

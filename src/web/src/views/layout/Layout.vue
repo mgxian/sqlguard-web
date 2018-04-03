@@ -1,8 +1,6 @@
 <template>
   <div class="app-wrapper" :class="{hideSidebar:!sidebar.opened}">
-    <div class="sidebar-wrapper">
-      <sidebar class="sidebar-container"></sidebar>
-    </div>
+    <sidebar class="sidebar-container"></sidebar>
     <div class="main-container">
       <navbar></navbar>
       <app-main></app-main>
@@ -11,7 +9,8 @@
 </template>
 
 <script>
-import { Navbar, Sidebar, AppMain } from '@/views/layout'
+import { Navbar, Sidebar, AppMain } from '@/views/layout/components'
+
 export default {
   name: 'layout',
   components: {
@@ -21,17 +20,18 @@ export default {
   },
   computed: {
     sidebar() {
-      return 'aaa'
+      return this.$store.state.app.sidebar
     }
   }
 }
 </script>
 
-<style lang="stylus">
-.sidebar-container
-  position fixed
-  left 0
-  top 0
-  right 0
-  bottom 0
+<style lang="stylus" scoped>
+@import "../../styles/mixin.styl"
+
+.app-wrapper
+  clearfix()
+  relative()
+  height 100%
+  width 100%
 </style>

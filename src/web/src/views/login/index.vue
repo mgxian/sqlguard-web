@@ -1,186 +1,90 @@
-<style lang="stylus">
-.login-tabs
-  .el-tabs__nav
-    width 100%
-    .el-tabs__item
-      width 50%
-      text-align center
-      padding 0
-    .el-tabs__active-bar
-      width 50% !important
-.login-page
-  text-align center
-  padding-top 10%
-  position absolute
-  left 0
-  right 0
-  top 0
-  bottom 0
-  background-color #2d3a4b
-  .el-tabs__item
-    color #fff
-.el-switch__label
-  color #fff
-.login-title
-  color #eee
-</style>
-
 <template>
-  <div class="login-page">
-    <h3 class="login-title">SQL检测系统</h3>
-    <el-row type="flex" justify="center">
-      <el-col :span="4">
-        <div>
-
-          <el-tabs v-model="activeName" class="login-tabs">
-            <el-tab-pane label="登录" name="first">
-              <el-form :model="login" :rules="userRules" ref="login">
-                <el-form-item prop="name">
-                  <el-input v-model="login.name" prefix-icon="el-icon-my-user"></el-input>
-                </el-form-item>
-                <el-form-item prop="password">
-                  <el-input v-model="login.password" type="password" prefix-icon="el-icon-my-password"></el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-row type="flex" justify="end">
-                    <el-col :span="6.5">
-                      <el-switch v-model="login.rememberme" active-text="7天内免登录" inactive-text=""></el-switch>
-                    </el-col>
-                  </el-row>
-                </el-form-item>
-                <el-form-item>
-                  <el-row type="flex" justify="space-around">
-                    <el-col :span="0.5">
-                      <el-button type="primary" @click="onSubmit('login')">登录</el-button>
-                    </el-col>
-                  </el-row>
-                </el-form-item>
-              </el-form>
-            </el-tab-pane>
-            <el-tab-pane label="注册" name="second">
-              <el-form ref="register" :model="register" :rules="userRules">
-                <el-form-item prop="name">
-                  <el-input v-model="register.name" prefix-icon="el-icon-my-user"></el-input>
-                </el-form-item>
-                <el-form-item prop="password">
-                  <el-input v-model="register.password" prefix-icon="el-icon-my-password"></el-input>
-                </el-form-item>
-                <el-form-item prop="password2">
-                  <el-input v-model="register.password2" prefix-icon="el-icon-my-confirmpassword"></el-input>
-                </el-form-item>
-                <el-form-item prop="email">
-                  <el-input v-model="register.email" prefix-icon="el-icon-my-email"></el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-row type="flex" justify="space-around">
-                    <el-col :span="0.5">
-                      <el-button type="primary" @click="onSubmit('register')">注册</el-button>
-                    </el-col>
-                  </el-row>
-                </el-form-item>
-              </el-form>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
-      </el-col>
-    </el-row>
+  <div class="login-container">
+    <el-form autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left" label-width="0px" class="card-box login-form">
+      <h3 class="title">vue-element-admin</h3>
+      <el-form-item prop="username">
+        <span class="svg-container svg-container_login">
+          <svg-icon icon-class="user" />
+        </span>
+        <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="username" />
+      </el-form-item>
+      <el-form-item prop="password">
+        <span class="svg-container">
+          <svg-icon icon-class="password"></svg-icon>
+        </span>
+        <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="password"></el-input>
+        <span class="show-pwd" @click="showPwd">
+          <svg-icon icon-class="eye" />
+        </span>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleLogin">
+          Sign in
+        </el-button>
+      </el-form-item>
+      <div class="tips">
+        <span style="margin-right:20px;">username: admin</span>
+        <span> password: admin</span>
+      </div>
+    </el-form>
   </div>
 </template>
 
 <script>
-import { isUsernameCanRegister } from '@/utils/validate'
+import { isvalidUsername } from '@/utils/validate'
+
 export default {
+  name: 'login',
   data() {
-    const validatePass2 = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请再次输入密码'))
-      } else if (value !== this.register.password) {
-        callback(new Error('两次输入密码不一致!'))
+    const validateUsername = (rule, value, callback) => {
+      if (!isvalidUsername(value)) {
+        callback(new Error('请输入正确的用户名'))
       } else {
         callback()
       }
     }
-
-    const validateUsername = (rule, value, callback) => {
-      isUsernameCanRegister(value, callback)
+    const validatePass = (rule, value, callback) => {
+      if (value.length < 5) {
+        callback(new Error('密码不能小于5位'))
+      } else {
+        callback()
+      }
     }
-
     return {
-      login: {
-        name: '',
-        password: '',
-        rememberme: false
+      loginForm: {
+        username: 'admin',
+        password: 'admin'
       },
-      userRules: {
-        name: [
-          {
-            required: true,
-            message: '请输入用户名',
-            trigger: 'blur'
-          },
-          {
-            min: 3,
-            max: 20,
-            message: '长度在 3 到 20 个字符',
-            trigger: 'blur'
-          },
-          {
-            validator: validateUsername,
-            trigger: 'blur'
-          }
+      loginRules: {
+        username: [
+          { required: true, trigger: 'blur', validator: validateUsername }
         ],
-        password: [
-          {
-            required: true,
-            message: '请输入密码',
-            trigger: 'blur'
-          },
-          {
-            min: 6,
-            max: 20,
-            message: '长度在 6 到 20 个字符',
-            trigger: 'blur'
-          }
-        ],
-        password2: [
-          {
-            validator: validatePass2,
-            trigger: 'blur'
-          }
-        ],
-
-        email: [
-          {
-            required: true,
-            type: 'email',
-            message: '请输入正确邮箱',
-            trigger: 'blur'
-          }
-        ]
+        password: [{ required: true, trigger: 'blur', validator: validatePass }]
       },
-
-      register: {
-        name: '',
-        password: '',
-        password2: '',
-        email: ''
-      },
-      activeName: 'first'
+      loading: false,
+      pwdType: 'password'
     }
   },
-
   methods: {
-    onSubmit(formName) {
-      this.$refs[formName].validate(valid => {
+    showPwd() {
+      if (this.pwdType === 'password') {
+        this.pwdType = ''
+      } else {
+        this.pwdType = 'password'
+      }
+    },
+    handleLogin() {
+      this.$refs.loginForm.validate(valid => {
         if (valid) {
-          alert('submit!')
-          this.$ajax
-            .post('oauth2/token', this.login)
-            .then(response => {
-              console.log(response)
+          this.loading = true
+          this.$store
+            .dispatch('Login', this.loginForm)
+            .then(() => {
+              this.loading = false
+              this.$router.push({ path: '/' })
             })
-            .catch(function(error) {
-              console.log(error)
+            .catch(() => {
+              this.loading = false
             })
         } else {
           console.log('error submit!!')
@@ -191,3 +95,84 @@ export default {
   }
 }
 </script>
+
+<style lang="stylus">
+bg = #2d3a4b
+dark_gray = #889aa4
+light_gray = #eee
+
+.login-container
+  position fixed
+  height 100%
+  width 100%
+  background-color bg
+
+  input:-webkit-autofill
+    -webkit-box-shadow 0 0 0px 1000px #293444 inset !important
+    -webkit-text-fill-color #fff !important
+
+  input
+    background transparent
+    border 0px
+    -webkit-appearance none
+    border-radius 0px
+    padding 12px 5px 12px 15px
+    color light_gray
+    height 47px
+
+  .el-input
+    display inline-block
+    height 47px
+    width 85%
+
+  .tips
+    font-size 14px
+    color #fff
+    margin-bottom 10px
+
+  .svg-container
+    padding 6px 5px 6px 15px
+    color dark_gray
+    vertical-align middle
+    width 30px
+    display inline-block
+
+    &_login
+      font-size 20px
+
+  .title
+    font-size 26px
+    font-weight 400
+    color light_gray
+    margin 0px auto 40px auto
+    text-align center
+    font-weight bold
+
+  .login-form
+    position absolute
+    left 0
+    right 0
+    width 400px
+    padding 35px 35px 15px 35px
+    margin 120px auto
+
+  .el-form-item
+    border 1px solid rgba(255, 255, 255, 0.1)
+    background rgba(0, 0, 0, 0.1)
+    border-radius 5px
+    color #454545
+
+  .show-pwd
+    position absolute
+    right 10px
+    top 7px
+    font-size 16px
+    color dark_gray
+    cursor pointer
+    user-select none
+
+  .thirdparty-button
+    position absolute
+    right 35px
+    bottom 28px
+</style>
