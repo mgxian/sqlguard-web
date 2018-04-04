@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function login(username, password) {
   return request({
-    url: '/user/login',
+    url: '/oauth2/token',
     method: 'post',
     data: {
       username,
@@ -13,15 +13,13 @@ export function login(username, password) {
 
 export function getInfo(token) {
   return request({
-    url: '/user/info',
-    method: 'get',
-    params: { token }
+    url: '/user',
+    method: 'get'
   })
 }
 
 export function logout() {
-  return request({
-    url: '/user/logout',
-    method: 'post'
+  return new Promise((resolve, reject) => {
+    resolve()
   })
 }

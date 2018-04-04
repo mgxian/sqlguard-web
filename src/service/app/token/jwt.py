@@ -3,7 +3,7 @@ from ..models import User
 
 def authenticate(username, password):
     user = User.query.filter_by(username=username).first()
-    if user.verify_password(password):
+    if user is not None and user.verify_password(password):
         return user
 
 

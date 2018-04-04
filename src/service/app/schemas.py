@@ -25,7 +25,7 @@ import json
 
 class UserSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'username', 'email')
+        fields = ('id', 'name', 'username', 'email', 'role_id')
         model = User
 
 

@@ -6,6 +6,7 @@ click
 mysql
 flask_jwt
 flask_mail
+flask_cors
 flask_sqlalchemy
 flask_migrate
 flask_marshmallow

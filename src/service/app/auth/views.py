@@ -19,6 +19,10 @@ def get_users():
     per_page = request.args.get('per_page', 10)
     users = User.query.paginate(page=page, per_page=per_page).items
     users_json = UserSchema(many=True).dump(users).data
+    for idx, user_json in enumerate(users_json):
+        id = user_json['id']
+        user = User.query.get(id)
+        users_json[idx]['roles'] = [user.role.name]
     return jsonify(users_json)
 
 
@@ -35,14 +39,27 @@ def create_user():
     db.session.add(user_post)
     db.session.commit()
     user_json = UserSchema().dump(user_post).data
+    user_json['roles'] = [user_post.role.name]
     return jsonify(user_json), 201
+
+
+@auth.route('/user')
+@jwt_required()
+def get_me():
+    id = current_identity.id
+    user = User.query.get_or_404(id)
+    user_json = UserSchema().dump(user).data
+    user_json['roles'] = [user.role.name]
+    return jsonify(user_json)
 
 
 @auth.route('/user/<int:id>')
 @jwt_required()
 def get_user(id):
     user = User.query.get_or_404(id)
-    return jsonify(UserSchema().dump(user).data)
+    user_json = UserSchema().dump(user).data
+    user_json['roles'] = [user.role.name]
+    return jsonify(user_json)
 
 
 @auth.route('/user/<int:id>', methods=['PUT'])
@@ -56,7 +73,9 @@ def edit_user(id):
     if user_put.name:
         user.name = user_put.name
     db.session.commit()
-    return jsonify(UserSchema().dump(user).data)
+    user_json = UserSchema().dump(user).data
+    user_json['roles'] = [user.role.name]
+    return jsonify(user_json)
 
 
 @auth.route('/user/<int:id>/change_password', methods=['POST'])
