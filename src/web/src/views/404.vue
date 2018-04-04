@@ -54,10 +54,10 @@ export default {
     padding 150px 0
     overflow hidden
 
-    &.pic-404__parent
+    .pic-404__parent
       width 100%
 
-    &.pic-404__child
+    .pic-404__child
       position absolute
 
       &.left
@@ -163,7 +163,7 @@ export default {
     padding 150px 0
     overflow hidden
 
-    &.bullshit__oops
+    .bullshit__oops
       font-size 32px
       font-weight bold
       line-height 40px
@@ -174,7 +174,7 @@ export default {
       animation-duration 0.5s
       animation-fill-mode forwards
 
-    &.bullshit__headline
+    .bullshit__headline
       font-size 20px
       line-height 24px
       color #1482f0
@@ -185,7 +185,7 @@ export default {
       animation-delay 0.1s
       animation-fill-mode forwards
 
-    &.bullshit__info
+    .bullshit__info
       font-size 13px
       line-height 21px
       color grey
@@ -196,7 +196,7 @@ export default {
       animation-delay 0.2s
       animation-fill-mode forwards
 
-    &.bullshit__return-home
+    .bullshit__return-home
       display block
       float left
       width 110px

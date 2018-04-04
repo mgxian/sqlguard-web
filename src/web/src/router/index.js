@@ -60,23 +60,23 @@ export const constantRouterMap = [
   },
 
   {
-    path: '/example',
+    path: '/user',
     component: Layout,
-    redirect: '/example/table',
+    hidden: true,
     name: '示例',
-    meta: { title: '示例', icon: 'example' },
+    meta: { title: '用户', icon: 'user' },
     children: [
       {
-        path: 'table',
-        name: '表格',
-        component: () => import('@/views/table/index'),
-        meta: { title: '表格', icon: 'table' }
+        path: 'profile',
+        name: '用户资料',
+        component: () => import('@/views/user/profile'),
+        meta: { title: '用户资料', icon: 'user' }
       },
       {
-        path: 'tree',
-        name: '树',
-        component: () => import('@/views/tree/index'),
-        meta: { title: '树', icon: 'tree' }
+        path: 'change_password',
+        name: '修改密码',
+        component: () => import('@/views/user/changePassword'),
+        meta: { title: '修改密码', icon: 'tree' }
       }
     ]
   },
