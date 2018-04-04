@@ -38,36 +38,45 @@ export const constantRouterMap = [
   },
 
   {
-    path: '/example',
+    path: '/admin',
     component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'example' },
+    redirect: '/admin/user',
+    name: '用户管理',
+    meta: { title: '用户管理', icon: 'example' },
     children: [
       {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table' }
+        path: 'user',
+        name: 'User',
+        component: () => import('@/views/user/index'),
+        meta: { title: '用户', icon: 'user' }
       },
       {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree' }
+        path: 'role',
+        name: 'Role',
+        component: () => import('@/views/user/role'),
+        meta: { title: '角色', icon: 'user' }
       }
     ]
   },
 
   {
-    path: '/form',
+    path: '/example',
     component: Layout,
+    redirect: '/example/table',
+    name: '示例',
+    meta: { title: '示例', icon: 'example' },
     children: [
       {
-        path: 'index',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
+        path: 'table',
+        name: '表格',
+        component: () => import('@/views/table/index'),
+        meta: { title: '表格', icon: 'table' }
+      },
+      {
+        path: 'tree',
+        name: '树',
+        component: () => import('@/views/tree/index'),
+        meta: { title: '树', icon: 'tree' }
       }
     ]
   },

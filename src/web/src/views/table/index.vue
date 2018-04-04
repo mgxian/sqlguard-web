@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
-    <el-table :data="list" v-loading.body="listLoading" element-loading-text="Loading" border fit highlight-current-row>
-      <el-table-column align="center" label='ID' width="95">
+    <el-table :data="list" v-loading.body="listLoading" element-loading-text="拼命加载中" border fit highlight-current-row>
+      <el-table-column align="center" label='ID'>
         <template slot-scope="scope">
           {{scope.$index}}
         </template>
