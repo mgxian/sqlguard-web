@@ -1,27 +1,35 @@
 <template>
   <div class="login-container">
     <el-form autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left" label-width="0px" class="card-box login-form">
-      <h3 class="title">vue-element-admin</h3>
+      <h3 class="title">SQL检测系统</h3>
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user" />
         </span>
-        <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="username" />
+        <el-input name="username" type="text" v-model="loginForm.username" autoComplete="on" placeholder="用户名" />
       </el-form-item>
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password"></svg-icon>
         </span>
-        <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="password"></el-input>
+        <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on" placeholder="密码"></el-input>
         <span class="show-pwd" @click="showPwd">
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleLogin">
-          Sign in
+          登录
         </el-button>
       </el-form-item>
+      <div class="login-footer">
+        <el-checkbox v-model="loginForm.rememberMe">下次自动登录</el-checkbox>
+        <div class="forget-password-link-container">
+          <router-link class="forget-password-link" to="/forget_password">
+            忘记密码?
+          </router-link>
+        </div>
+      </div>
     </el-form>
   </div>
 </template>
@@ -48,8 +56,9 @@ export default {
     }
     return {
       loginForm: {
-        username: 'will',
-        password: 'will'
+        username: '',
+        password: '',
+        rememberMe: true
       },
       loginRules: {
         username: [
@@ -151,6 +160,16 @@ light_gray = #eee
     width 400px
     padding 35px 35px 15px 35px
     margin 120px auto
+
+    .login-footer
+      .forget-password-link-container
+        display inline-block
+        position absolute
+        right 35px
+        .forget-password-link
+          text-align right
+          color light_gray
+          font-size 14px
 
   .el-form-item
     border 1px solid rgba(255, 255, 255, 0.1)

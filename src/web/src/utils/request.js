@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import store from '../store'
-import { getToken } from '@/utils/auth'
+// import { getToken } from '@/utils/auth'
 
 // 创建axios实例
 const service = axios.create({
@@ -11,8 +11,9 @@ const service = axios.create({
 
 // request拦截器
 service.interceptors.request.use(config => {
-  if (store.getters.token) {
-    config.headers['Authorization'] = 'Bearer ' + getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
+  const token = store.getters.token
+  if (token) {
+    config.headers['Authorization'] = 'Bearer ' + token // 让每个请求携带自定义token 请根据实际情况自行修改
   }
   return config
 }, error => {
@@ -24,9 +25,9 @@ service.interceptors.request.use(config => {
 // respone拦截器
 service.interceptors.response.use(
   response => {
-  /**
-  * status_code为非2xx是抛错 可结合自己业务进行修改
-  */
+    /**
+    * status_code为非2xx是抛错 可结合自己业务进行修改
+    */
     const res = response.data
     const status_code = response.status
     if (status_code >= 300) {

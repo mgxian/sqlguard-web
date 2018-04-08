@@ -13,9 +13,24 @@
             首页
           </el-dropdown-item>
         </router-link>
+        <router-link class="inlineBlock" to="/user/profile">
+          <el-dropdown-item>
+            用户信息
+          </el-dropdown-item>
+        </router-link>
         <router-link class="inlineBlock" to="/user/change_password">
           <el-dropdown-item>
             修改密码
+          </el-dropdown-item>
+        </router-link>
+        <router-link class="inlineBlock" to="/forget_password">
+          <el-dropdown-item>
+            忘记密码
+          </el-dropdown-item>
+        </router-link>
+        <router-link class="inlineBlock" to="/reset_password">
+          <el-dropdown-item>
+            重置密码
           </el-dropdown-item>
         </router-link>
         <el-dropdown-item divided>

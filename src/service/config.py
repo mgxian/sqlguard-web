@@ -6,6 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__name__))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
+    PASSWORD_RESET_TOKEN_EXPIRATION_SECOND = 3600
     SQL_GUARD_ADMIN = os.environ.get('SQL_GUARD_ADMIN')
     INCEPTION_HOST = os.environ.get('INCEPTION_HOST') or '127.0.0.1'
     INCEPTION_PORT = os.environ.get('INCEPTION_PORT') or 5506
@@ -16,7 +17,7 @@ class Config:
     JWT_AUTH_URL_RULE = '/oauth2/token'
     JWT_AUTH_HEADER_PREFIX = 'Bearer'
     JWT_EXPIRATION_DELTA = timedelta(seconds=3600*3)
-    PASSWORD_RESET_URI='/user/reset_password'
+    PASSWORD_RESET_URI='/reset_password'
 
     # mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.163.com')

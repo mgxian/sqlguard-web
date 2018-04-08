@@ -5,6 +5,7 @@ import MySQLdb as mysql_db
 from subprocess import Popen, PIPE
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import JSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as TSerializer
 from . import db
 import platform
 
@@ -152,12 +153,14 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def generate_password_reset_token(self):
-        s = Serializer(current_app.config['SECRET_KEY'])
+        s = TSerializer(
+            current_app.config['SECRET_KEY'], current_app.config['PASSWORD_RESET_TOKEN_EXPIRATION_SECOND'])
         token = s.dumps({'id': self.id})
         return token.decode("utf-8")
 
     def reset_password(self, token, password):
-        s = Serializer(current_app.config['SECRET_KEY'])
+        s = TSerializer(
+            current_app.config['SECRET_KEY'], current_app.config['PASSWORD_RESET_TOKEN_EXPIRATION_SECOND'])
         try:
             data = s.loads(token)
         except:

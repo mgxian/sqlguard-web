@@ -20,4 +20,4 @@ docker run --name sqlguard-web-test \
 
 # log
 sleep 1
-docker exec -ti sqlguard-web-test tail -f /code/gunicorn.log
+docker exec -ti sqlguard-web-test tail -f /code/gunicorn.log /tmp/sqlguard.log

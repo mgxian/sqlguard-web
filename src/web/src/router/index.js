@@ -76,9 +76,21 @@ export const constantRouterMap = [
         path: 'change_password',
         name: '修改密码',
         component: () => import('@/views/user/changePassword'),
-        meta: { title: '修改密码', icon: 'tree' }
+        meta: { title: '修改密码', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/forget_password',
+    name: '忘记密码',
+    component: () => import('@/views/user/forgetPassword'),
+    meta: { title: '忘记密码', icon: 'user' }
+  },
+  {
+    path: '/reset_password',
+    name: '重置密码',
+    component: () => import('@/views/user/resetPassword'),
+    meta: { title: '重置密码', icon: 'user' }
   },
 
   { path: '*', redirect: '/404', hidden: true }
