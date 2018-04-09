@@ -177,6 +177,7 @@ def execute_sql(mysql_id, id):
     if sql is None:
         return abort(404)
     sql.result = sql.execute()
+    sql.status = SqlStatus['DONE']
     print(sql.result)
     db.session.commit()
     return ('', 200)
@@ -195,3 +196,32 @@ def assign_role(id):
     user.role_id = role_id
     db.session.commit()
     return ('', 200)
+
+
+@main.route('/user/sqls')
+@jwt_required()
+def get_user_sqls():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    user_id = current_identity.id
+    sqls = Sql.query.filter_by(user_id=user_id).paginate(
+        page=page, per_page=per_page).items
+    sqls_json = SqlSchema(many=True).dump(sqls).data
+    return jsonify(sqls_json)
+
+
+@main.route('/sqls')
+@jwt_required()
+@permission_required(Permission.EXECUTE)
+def get_sqls_by_status():
+    page = request.args.get('page', 1)
+    per_page = request.args.get('per_page', 10)
+    status = request.args.get('status')
+    if status:
+        sqls = Sql.query.filter_by(status=status, type=SqlType['INCEPTION']).paginate(
+            page=page, per_page=per_page).items
+    else:
+        sqls = Sql.query.filter_by(type=SqlType['INCEPTION']).filter(Sql.status != status).paginate(
+            page=page, per_page=per_page).items
+    sqls_json = SqlSchema(many=True).dump(sqls).data
+    return jsonify(sqls_json)

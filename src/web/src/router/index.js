@@ -103,6 +103,33 @@ export const constantRouterMap = [
     ]
   },
   {
+    path: '/sql',
+    component: Layout,
+    name: 'SQL管理',
+    redirect: '/sql/env',
+    meta: { title: 'SQL管理', icon: 'tree' },
+    children: [
+      {
+        path: 'index',
+        name: '我的申请',
+        component: () => import('@/views/sql/index'),
+        meta: { title: '我的申请', icon: 'tree' }
+      },
+      {
+        path: 'need-review',
+        name: '待审核',
+        component: () => import('@/views/sql/needReviewSql'),
+        meta: { title: '待审核', icon: 'tree' }
+      },
+      {
+        path: 'review-history',
+        name: '审核历史',
+        component: () => import('@/views/sql/reviewHistory'),
+        meta: { title: '审核历史', icon: 'tree' }
+      }
+    ]
+  },
+  {
     path: '/forget_password',
     name: '忘记密码',
     component: () => import('@/views/user/forgetPassword'),

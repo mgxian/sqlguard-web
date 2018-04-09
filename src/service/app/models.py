@@ -355,7 +355,7 @@ class Sql(db.Model):
             result = self.mysql.get_inception_execute_result(self.sql)
         else:
             result = ''
-        print('--------------->check ', result)
+        print('--------------->execute ', result)
         return result
 
     def to_json(self):
