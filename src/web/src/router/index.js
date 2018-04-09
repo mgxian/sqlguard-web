@@ -63,7 +63,7 @@ export const constantRouterMap = [
     path: '/user',
     component: Layout,
     hidden: true,
-    name: '示例',
+    name: '用户',
     meta: { title: '用户', icon: 'user' },
     children: [
       {
@@ -77,6 +77,28 @@ export const constantRouterMap = [
         name: '修改密码',
         component: () => import('@/views/user/changePassword'),
         meta: { title: '修改密码', icon: 'user' }
+      }
+    ]
+  },
+
+  {
+    path: '/db',
+    component: Layout,
+    name: '数据库管理',
+    redirect: '/db/env',
+    meta: { title: '数据库管理', icon: 'tree' },
+    children: [
+      {
+        path: 'env',
+        name: '环境',
+        component: () => import('@/views/db/env'),
+        meta: { title: '环境', icon: 'tree' }
+      },
+      {
+        path: 'mysql',
+        name: '数据库',
+        component: () => import('@/views/db/mysql'),
+        meta: { title: '数据库', icon: 'tree' }
       }
     ]
   },
