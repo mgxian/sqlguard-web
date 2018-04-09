@@ -2,13 +2,15 @@ import Cookies from 'js-cookie'
 
 const TokenKey = 'Access-Token'
 const UserIDKey = 'User-ID'
+const ExpiresMin = 120
 
 export function getToken() {
   return Cookies.get(TokenKey)
 }
 
 export function setToken(token) {
-  return Cookies.set(TokenKey, token)
+  const expiresTime = new Date(new Date().getTime() + ExpiresMin * 60 * 1000)
+  return Cookies.set(TokenKey, token, { expires: expiresTime })
 }
 
 export function removeToken() {
@@ -20,7 +22,8 @@ export function getUserID() {
 }
 
 export function setUserID(id) {
-  return Cookies.set(UserIDKey, id)
+  const expiresTime = new Date(new Date().getTime() + ExpiresMin * 60 * 1000)
+  return Cookies.set(UserIDKey, id, { expires: expiresTime })
 }
 
 export function removeUserID() {
