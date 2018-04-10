@@ -84,7 +84,8 @@ def edit_mysql(id):
     if mysql_put.env_id:
         env_id = mysql_put.env_id
     else:
-        env_id = Env.query.filter_by(default=True).first().id
+        # env_id = Env.query.filter_by(default=True).first().id
+        env_id = mysql.env_id
     mysql_check = Mysql.query.filter_by(
         host=mysql_put.host, port=port,
         database=mysql_put.database,
@@ -93,6 +94,7 @@ def edit_mysql(id):
     if mysql_check and mysql_check.id != id:
         return conflict('数据库已存在')
     env_id = data.get('env_id')
+    password = data.get('password')
     if env_id is None:
         mysql_put.env_id = mysql.env_id
     if mysql_put.host:
@@ -105,6 +107,8 @@ def edit_mysql(id):
         mysql.username = mysql_put.username
     if mysql_put.env_id:
         mysql.env_id = mysql_put.env_id
+    if password and password.strip() != "":
+        mysql.password = password.strip()
     db.session.commit()
     return jsonify(MysqlSchema().dump(mysql).data)
 

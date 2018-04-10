@@ -87,6 +87,7 @@ class MysqlPutSchema(ma.Schema):
     database = fields.Str()
     username = fields.Str()
     env_id = fields.Int()
+    password = fields.Str()
 
     @post_load
     def make_mysql(self, data):
