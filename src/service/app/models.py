@@ -17,7 +17,7 @@ else:
 
 class Permission:
     APPLY = 1
-    CHECK = 2
+    OPTIMIZE = 2
     EXECUTE = 4
     ADMIN = 1024
 
@@ -26,6 +26,7 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    name_zh = db.Column(db.String(64), unique=True)
     desc = db.Column(db.String(128), nullable=True)
     default = db.Column(db.Boolean, default=False)
     permissions = db.Column(db.Integer)
@@ -35,16 +36,19 @@ class Role(db.Model):
     def insert_roles():
         roles = {
             'User': {
-                'desc': '开发人员',
-                'permissons': [Permission.APPLY, Permission.CHECK]
+                'desc': '研发人员',
+                'name_zh': '研发',
+                'permissons': [Permission.APPLY, Permission.OPTIMIZE]
             },
             'Manager': {
-                'desc': '经理',
-                'permissons': [Permission.APPLY, Permission.CHECK, Permission.EXECUTE]
+                'desc': '经理（主管）',
+                'name_zh': '经理',
+                'permissons': [Permission.APPLY, Permission.OPTIMIZE, Permission.EXECUTE]
             },
             'Administrator': {
                 'desc': '管理员',
-                'permissons': [Permission.APPLY, Permission.CHECK, Permission.EXECUTE, Permission.ADMIN]
+                'name_zh': '管理员',
+                'permissons': [Permission.APPLY, Permission.OPTIMIZE, Permission.EXECUTE, Permission.ADMIN]
             }
         }
 
@@ -52,7 +56,8 @@ class Role(db.Model):
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
-                role = Role(name=r, desc=roles[r]['desc'])
+                role = Role(
+                    name=r, name_zh=roles[r]['name_zh'], desc=roles[r]['desc'])
             role.reset_permission()
             for perm in roles[r]['permissons']:
                 role.add_permission(perm)
@@ -78,6 +83,7 @@ class Role(db.Model):
         json_role = {
             'id': self.id,
             'name': self.name,
+            'name_zh': self.name_zh,
             'desc': self.desc
         }
         return json_role
@@ -90,6 +96,7 @@ class Env(db.Model):
     __tablename__ = 'envs'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    name_zh = db.Column(db.String(64), unique=True)
     desc = db.Column(db.String(128), nullable=True)
     default = db.Column(db.Boolean, default=False)
     mysqls = db.relationship('Mysql', backref='env', lazy='dynamic')
@@ -97,16 +104,16 @@ class Env(db.Model):
     @staticmethod
     def insert_envs():
         envs = {
-            'Development': 'Development',
-            'Staging': 'Staging',
-            'Production': 'Production'
+            'Development': ['开发环境', 'Development'],
+            'Staging': ['预发环境', 'Staging'],
+            'Production': ['生产环境', 'Production']
         }
 
         default_env = 'Development'
         for e in envs:
             env = Env.query.filter_by(name=e).first()
             if env is None:
-                env = Env(name=e, desc=envs[e])
+                env = Env(name=e, name_zh=envs[e][0], desc=envs[e][1])
             env.default = (default_env == env.name)
             db.session.add(env)
         db.session.commit()
@@ -115,6 +122,7 @@ class Env(db.Model):
         json_env = {
             'id': self.id,
             'name': self.name,
+            'name_zh': self.name_zh,
             'desc': self.desc
         }
         return json_env

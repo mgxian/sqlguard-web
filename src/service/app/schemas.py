@@ -31,13 +31,13 @@ class UserSchema(ma.ModelSchema):
 
 class EnvSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'desc')
+        fields = ('id', 'name', 'name_zh', 'desc')
         model = Env
 
 
 class RoleSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'desc')
+        fields = ('id', 'name', 'name_zh', 'desc')
         model = Role
 
 
@@ -151,6 +151,7 @@ class LoginSchema(ma.Schema):
             raise ValidationError(json.dumps(e))
         else:
             return d
+
 
 def test():
     role = Role.query.filter_by(name='User').first()
