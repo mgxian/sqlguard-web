@@ -30,3 +30,14 @@ export function executeSql(mysql_id, sql_id) {
     method: 'post'
   })
 }
+
+export function createSql(sql) {
+  return request({
+    url: '/mysql/' + sql.mysql_id.toString() + '/sqls',
+    method: 'post',
+    data: {
+      sql: sql.sql,
+      type: sql.type
+    }
+  })
+}
