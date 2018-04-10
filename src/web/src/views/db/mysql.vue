@@ -21,10 +21,11 @@
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
           <el-button @click="handleUpdate(scope.row)" type="primary" size="mini">编辑</el-button>
+          <el-button @click="handleDelete(scope.row)" type="danger" size="mini">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="编辑" :visible.sync="dialogEditVisible" :before-close="handleClose">
+    <el-dialog title="编辑" :visible.sync="dialogEditVisible">
       <el-form v-if="temp" class="form" label-position="left" label-width="80px" :model="temp">
         <el-form-item label="ID">
           {{temp.id}}
@@ -39,7 +40,7 @@
           <el-input v-model="temp.username" placeholder="请输入用户名" clearable></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input type="password" v-model="temp.username" placeholder="请输入密码" clearable></el-input>
+          <el-input type="password" v-model="temp.password" placeholder="请输入密码" clearable></el-input>
         </el-form-item>
         <el-form-item label="数据库名">
           <el-input v-model="temp.database" placeholder="请输入数据库名" clearable></el-input>
@@ -56,7 +57,7 @@
         <el-button type="primary" @click="updateMysql">确定</el-button>
       </span>
     </el-dialog>
-    <el-dialog title="添加" :visible.sync="dialogAddVisible" :before-close="handleClose">
+    <el-dialog title="添加" :visible.sync="dialogAddVisible">
       <el-form v-if="temp" class="form" label-position="left" label-width="80px" :model="temp">
         <el-form-item label="地址">
           <el-input v-model="temp.host" placeholder="请输入地址" clearable></el-input>
@@ -68,7 +69,7 @@
           <el-input v-model="temp.username" placeholder="请输入用户名" clearable></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input type="password" v-model="temp.username" placeholder="请输入密码" clearable></el-input>
+          <el-input type="password" v-model="temp.password" placeholder="请输入密码" clearable></el-input>
         </el-form-item>
         <el-form-item label="数据库名">
           <el-input v-model="temp.database" placeholder="请输入数据库名" clearable></el-input>
@@ -85,11 +86,24 @@
         <el-button type="primary" @click="createMysql">确定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="删除" :visible.sync="dialogDeleteVisible">
+      <span>确定要删除吗？</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogDeleteVisible = false">取消</el-button>
+        <el-button type="primary" @click="deleteMysql">确定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getMySQLs, getEnvs } from '@/api/db'
+import {
+  getMySQLs,
+  getEnvs,
+  createMysql,
+  updateMysql,
+  deleteMysql
+} from '@/api/db'
 
 export default {
   data() {
@@ -98,6 +112,7 @@ export default {
       listLoading: true,
       dialogEditVisible: false,
       dialogAddVisible: false,
+      dialogDeleteVisible: false,
       temp: Object,
       envOptions: [],
       queryText: ''
@@ -129,7 +144,7 @@ export default {
       })
     },
     handleUpdate(data) {
-      this.temp = Object.assign({}, data)
+      this.temp = Object.assign({ password: '' }, data)
       this.getEnvOptions()
       this.dialogEditVisible = true
     },
@@ -137,6 +152,10 @@ export default {
       this.resetTemp()
       this.getEnvOptions()
       this.dialogAddVisible = true
+    },
+    handleDelete(data) {
+      this.temp.id = data.id
+      this.dialogDeleteVisible = true
     },
     handleClose(done) {
       this.$confirm('确认关闭？')
@@ -147,7 +166,11 @@ export default {
     },
     updateMysql() {
       // console.log(this.temp)
-      this.dialogEditVisible = false
+      updateMysql(this.temp).then(response => {
+        // console.log('response ----> ', response)
+        this.dialogEditVisible = false
+        this.fetchMySQLs()
+      })
     },
     resetTemp() {
       this.temp = {
@@ -160,7 +183,17 @@ export default {
       }
     },
     createMysql() {
-      this.dialogAddVisible = false
+      createMysql(this.temp).then(response => {
+        // console.log('response ----> ', response)
+        this.dialogAddVisible = false
+        this.fetchMySQLs()
+      })
+    },
+    deleteMysql() {
+      deleteMysql(this.temp.id).then(response => {
+        this.dialogDeleteVisible = false
+        this.fetchMySQLs()
+      })
     }
   }
 }

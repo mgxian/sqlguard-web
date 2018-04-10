@@ -113,6 +113,16 @@ def edit_mysql(id):
     return jsonify(MysqlSchema().dump(mysql).data)
 
 
+@main.route('/mysql/<int:id>', methods=['DELETE'])
+@jwt_required()
+@permission_required(Permission.EXECUTE)
+def delete_mysql(id):
+    mysql = Mysql.query.get_or_404(id)
+    db.session.delete(mysql)
+    db.session.commit()
+    return ('', 200)
+
+
 @main.route('/mysql/<int:mysql_id>/sqls')
 @jwt_required()
 def get_sqls(mysql_id):

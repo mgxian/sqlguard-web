@@ -42,8 +42,10 @@ service.interceptors.response.use(
     }
   },
   error => {
-    console.log('err: ' + error)// for debug
+    console.log('axios interceptors get error ----> ' + error)// for debug
     const errorResp = error.response.data
+    const errorCode = error.response.status
+    console.log('axios interceptors error code ----> ', errorCode)
     let errMsg = ''
     if (errorResp.msg) {
       errMsg = errorResp.msg
