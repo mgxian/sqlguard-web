@@ -25,19 +25,19 @@ import json
 
 class UserSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'username', 'email', 'role_id')
+        fields = ('id', 'name', 'username', 'email')
         model = User
 
 
 class EnvSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'name_zh', 'desc')
+        fields = ('id', 'name', 'name_zh', 'desc', 'default')
         model = Env
 
 
 class RoleSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'name', 'name_zh', 'desc')
+        fields = ('id', 'name', 'name_zh', 'desc', 'default')
         model = Role
 
 

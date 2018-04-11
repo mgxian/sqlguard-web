@@ -5,9 +5,10 @@ const user = {
   state: {
     token: getToken(),
     user_id: getUserID(),
+    username: '',
     name: '',
     avatar: '',
-    roles: []
+    role: {}
   },
 
   mutations: {
@@ -17,14 +18,17 @@ const user = {
     SET_USER_ID: (state, id) => {
       state.user_id = id
     },
+    SET_USERNAME: (state, username) => {
+      state.username = username
+    },
     SET_NAME: (state, name) => {
       state.name = name
     },
     SET_AVATAR: (state, avatar) => {
       state.avatar = avatar
     },
-    SET_ROLES: (state, roles) => {
-      state.roles = roles
+    SET_ROLE: (state, role) => {
+      state.role = role
     }
   },
 
@@ -48,13 +52,15 @@ const user = {
 
     // 获取用户信息
     GetInfo({ commit, state }) {
+      // console.log('----->get user info')
       return new Promise((resolve, reject) => {
         getInfo(state.token).then(response => {
           const data = response
           setUserID(data.id)
-          commit('SET_ROLES', data.roles)
+          commit('SET_ROLE', data.role)
           commit('SET_USER_ID', data.id)
           commit('SET_NAME', data.name)
+          commit('SET_USERNAME', data.username)
           commit('SET_AVATAR', data.avatar)
           resolve(response)
         }).catch(error => {
@@ -69,7 +75,7 @@ const user = {
         logout(state.token).then(() => {
           commit('SET_TOKEN', '')
           commit('SET_USER_ID', 0)
-          commit('SET_ROLES', [])
+          commit('SET_ROLE', {})
           removeToken()
           removeUserID()
           resolve()

@@ -22,7 +22,12 @@ def get_users():
     for idx, user_json in enumerate(users_json):
         id = user_json['id']
         user = User.query.get(id)
-        users_json[idx]['roles'] = [user.role.name]
+        role = {
+            'id': user.role.id,
+            'name': user.role.name,
+            'name_zh': user.role.name_zh,
+        }
+        users_json[idx]['role'] = role
     return jsonify(users_json)
 
 
@@ -39,7 +44,12 @@ def create_user():
     db.session.add(user_post)
     db.session.commit()
     user_json = UserSchema().dump(user_post).data
-    user_json['roles'] = [user_post.role.name]
+    role = {
+        'id': user_post.role.id,
+        'name': user_post.role.name,
+        'name_zh': user_post.role.name_zh,
+    }
+    user_json['role'] = role
     return jsonify(user_json), 201
 
 
@@ -49,7 +59,12 @@ def get_me():
     id = current_identity.id
     user = User.query.get_or_404(id)
     user_json = UserSchema().dump(user).data
-    user_json['roles'] = [user.role.name]
+    role = {
+        'id': user.role.id,
+        'name': user.role.name,
+        'name_zh': user.role.name_zh,
+    }
+    user_json['role'] = role
     return jsonify(user_json)
 
 
@@ -58,7 +73,12 @@ def get_me():
 def get_user(id):
     user = User.query.get_or_404(id)
     user_json = UserSchema().dump(user).data
-    user_json['roles'] = [user.role.name]
+    role = {
+        'id': user.role.id,
+        'name': user.role.name,
+        'name_zh': user.role.name_zh,
+    }
+    user_json['role'] = role
     return jsonify(user_json)
 
 
@@ -74,7 +94,12 @@ def edit_user(id):
         user.name = user_put.name
     db.session.commit()
     user_json = UserSchema().dump(user).data
-    user_json['roles'] = [user.role.name]
+    role = {
+        'id': user.role.id,
+        'name': user.role.name,
+        'name_zh': user.role.name_zh,
+    }
+    user_json['role'] = role
     return jsonify(user_json)
 
 
