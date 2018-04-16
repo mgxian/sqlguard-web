@@ -43,7 +43,7 @@ class RoleSchema(ma.ModelSchema):
 
 class MysqlSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'host', 'port', 'database', 'username', 'env_id')
+        fields = ('id', 'host', 'port', 'database', 'username', 'note')
         model = Mysql
 
 
@@ -88,6 +88,7 @@ class MysqlPutSchema(ma.Schema):
     username = fields.Str()
     env_id = fields.Int()
     password = fields.Str()
+    note = fields.Str()
 
     @post_load
     def make_mysql(self, data):

@@ -6,8 +6,6 @@
       <el-button @click="handleCreate" type="primary" icon="el-icon-edit">添加</el-button>
     </div>
     <el-table class="table" v-loading.body="listLoading" element-loading-text="拼命加载中" :data="mysqls">
-      <el-table-column align="center" prop="id" label="数据库ID" sortable>
-      </el-table-column>
       <el-table-column align="center" prop="host" label="地址">
       </el-table-column>
       <el-table-column align="center" prop="port" label="端口">
@@ -16,7 +14,9 @@
       </el-table-column>
       <el-table-column align="center" prop="database" label="数据库名">
       </el-table-column>
-      <el-table-column align="center" prop="env_id" label="环境ID">
+      <el-table-column align="center" prop="env.name_zh" label="环境">
+      </el-table-column>
+      <el-table-column align="center" prop="note" label="备注">
       </el-table-column>
       <el-table-column align="center" label="操作">
         <template slot-scope="scope">
@@ -27,9 +27,6 @@
     </el-table>
     <el-dialog title="编辑" :visible.sync="dialogEditVisible">
       <el-form v-if="temp" class="form" label-position="left" label-width="80px" :model="temp">
-        <el-form-item label="ID">
-          {{temp.id}}
-        </el-form-item>
         <el-form-item label="地址">
           <el-input v-model="temp.host" placeholder="请输入地址" clearable></el-input>
         </el-form-item>
@@ -40,16 +37,19 @@
           <el-input v-model="temp.username" placeholder="请输入用户名" clearable></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input type="password" v-model="temp.password" placeholder="请输入密码" clearable></el-input>
+          <el-input type="password" v-model="temp.password" placeholder="空表示不修改密码" clearable></el-input>
         </el-form-item>
         <el-form-item label="数据库名">
           <el-input v-model="temp.database" placeholder="请输入数据库名" clearable></el-input>
         </el-form-item>
         <el-form-item label="环境">
-          <el-select v-model="temp.env_id" placeholder="请选择">
+          <el-select v-model="temp.env.id" placeholder="请选择">
             <el-option v-for="item in envOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="temp.note" type="textarea" placeholder="请输入备注" clearable></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -75,10 +75,13 @@
           <el-input v-model="temp.database" placeholder="请输入数据库名" clearable></el-input>
         </el-form-item>
         <el-form-item label="环境">
-          <el-select v-model="temp.env_id" placeholder="请选择">
+          <el-select v-model="temp.env.id" placeholder="请选择">
             <el-option v-for="item in envOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="temp.note" type="textarea" placeholder="请输入备注" clearable></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -113,7 +116,9 @@ export default {
       dialogEditVisible: false,
       dialogAddVisible: false,
       dialogDeleteVisible: false,
-      temp: Object,
+      temp: {
+        env: { id: 0 }
+      },
       envOptions: [],
       queryText: ''
     }
@@ -139,7 +144,7 @@ export default {
       }
       getEnvs().then(response => {
         response.forEach(env => {
-          this.envOptions.push({ value: env.id, label: env.name })
+          this.envOptions.push({ value: env.id, label: env.name_zh })
         })
       })
     },
@@ -179,7 +184,12 @@ export default {
         port: 3306,
         username: '',
         password: '',
-        database: ''
+        database: '',
+        env: {
+          id: undefined,
+          name: '',
+          name_zh: ''
+        }
       }
     },
     createMysql() {

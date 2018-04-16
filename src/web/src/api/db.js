@@ -7,10 +7,13 @@ export function getEnvs() {
   })
 }
 
-export function getMySQLs() {
+export function getMySQLs(env_id) {
   return request({
     url: '/mysqls',
-    method: 'get'
+    method: 'get',
+    params: {
+      env_id
+    }
   })
 }
 
@@ -24,7 +27,8 @@ export function createMysql(mysql) {
       username: mysql.username,
       password: mysql.password,
       database: mysql.database,
-      env_id: mysql.env_id
+      env_id: mysql.env.id,
+      note: mysql.note
     }
   })
 }
@@ -39,7 +43,8 @@ export function updateMysql(mysql) {
       username: mysql.username,
       password: mysql.password,
       database: mysql.database,
-      env_id: mysql.env_id
+      env_id: mysql.env.id,
+      note: mysql.note
     }
   })
 }

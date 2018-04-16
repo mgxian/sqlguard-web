@@ -7,7 +7,7 @@
       </el-table-column>
       <el-table-column align="center" prop="email" label="邮箱">
       </el-table-column>
-      <el-table-column align="center" prop="role" label="角色" :filters="filters" :filter-method="filterTag" filter-placement="bottom-end">
+      <el-table-column align="center" label="角色" :filters="filters" :filter-method="filterTag" filter-placement="bottom-end">
         <template slot-scope="scope">
           <el-tag v-if="filter.value === scope.row.role.name" v-for="filter in filters" :key="filter.value" :type="filter.type" close-transition>
             {{filter.text}}

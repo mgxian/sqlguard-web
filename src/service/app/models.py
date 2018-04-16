@@ -205,8 +205,9 @@ class Mysql(db.Model):
     port = db.Column(db.String(10), default='3306')
     database = db.Column(db.String(64), nullable=False)
     username = db.Column(db.String(128), default='root')
-    password_secret = db.Column(db.String(128), nullable=True)
+    password_secret = db.Column(db.String(128), nullable=False)
     env_id = db.Column(db.Integer, db.ForeignKey('envs.id'))
+    note = db.Column(db.String(128), nullable=True)
     sqls = db.relationship('Sql', backref='mysql', lazy="dynamic")
 
     def __init__(self, **kargs):
@@ -328,6 +329,7 @@ class Sql(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     mysql_id = db.Column(db.Integer, db.ForeignKey('mysqls.id'))
     result = db.Column(db.Text)
+    result_detail = db.Column(db.Text)
 
     def __init__(self, **kargs):
         super(Sql, self).__init__(**kargs)
@@ -346,7 +348,7 @@ class Sql(db.Model):
         target.result = mysql.get_sqladvisor_result(value)
 
     def get_sqladvisor_result(self):
-        return self.mysql.get_sqladvisor_result(self.sql)
+        return self.mysql.get_sqladvisor_check_result(self.sql)
 
     def check(self):
         if self.type == SqlType['SQLADVISOR']:

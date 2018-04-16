@@ -1,9 +1,12 @@
 import request from '@/utils/request'
 
-export function getSqls() {
+export function getSqls(type) {
   return request({
     url: '/user/sqls',
-    method: 'get'
+    method: 'get',
+    params: {
+      type
+    }
   })
 }
 

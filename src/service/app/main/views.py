@@ -39,8 +39,19 @@ def get_roles():
 def get_mysqls():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
-    mysqls = Mysql.query.paginate(page=page, per_page=per_page).items
+    env_id = request.args.get('env_id')
+    if env_id is None:
+        mysqls = Mysql.query.paginate(page=page, per_page=per_page).items
+    else:
+        mysqls = Env.query.get(env_id).mysqls
+
     mysqls_json = MysqlSchema(many=True).dump(mysqls).data
+    for idx, mysql in enumerate(mysqls):
+        mysqls_json[idx]['env'] = {
+            'id': mysql.env.id,
+            'name': mysql.env.name,
+            'name_zh': mysql.env.name_zh
+        }
     return jsonify(mysqls_json)
 
 
@@ -63,14 +74,26 @@ def create_mysql():
         return conflict('数据库已存在')
     db.session.add(mysql_post)
     db.session.commit()
-    return jsonify(MysqlSchema().dump(mysql_post).data), 201
+    mysql_json = MysqlSchema().dump(mysql_post).data
+    mysql_json['env'] = {
+        'id': mysql_post.env.id,
+        'name': mysql_post.env.name,
+        'name_zh': mysql_post.env.name_zh
+    }
+    return jsonify(mysql_json), 201
 
 
 @main.route('/mysql/<int:id>')
 @jwt_required()
 def get_mysql(id):
     mysql = Mysql.query.get_or_404(id)
-    return jsonify(MysqlSchema().dump(mysql).data)
+    mysql_json = MysqlSchema().dump(mysql).data
+    mysql_json['env'] = {
+        'id': mysql.env.id,
+        'name': mysql.env.name,
+        'name_zh': mysql.env.name_zh
+    }
+    return jsonify(mysql_json)
 
 
 @main.route('/mysql/<int:id>', methods=['PUT'])
@@ -109,8 +132,15 @@ def edit_mysql(id):
         mysql.env_id = mysql_put.env_id
     if password and password.strip() != "":
         mysql.password = password.strip()
+    mysql.note = mysql_put.note
     db.session.commit()
-    return jsonify(MysqlSchema().dump(mysql).data)
+    mysql_json = MysqlSchema().dump(mysql).data
+    mysql_json['env'] = {
+        'id': mysql.env.id,
+        'name': mysql.env.name,
+        'name_zh': mysql.env.name_zh
+    }
+    return jsonify(mysql_json)
 
 
 @main.route('/mysql/<int:id>', methods=['DELETE'])
@@ -143,6 +173,17 @@ def create_sql(mysql_id):
     sql_post.mysql_id = mysql_id
     db.session.add(sql_post)
     db.session.commit()
+
+    if sql_post.type == SqlType['SQLADVISOR']:
+        logging.debug(type(sql_post))
+        logging.debug(sql_post.id)
+        sql_post.result_detail = sql_post.check()
+        result = [line for line in sql_post.result_detail.split(
+            '\n') if line != ''][-2]
+        sql_post.result = result.split('：')[-1]
+        logging.debug(sql_post.result)
+        db.session.commit()
+
     return jsonify(SqlSchema().dump(sql_post).data), 201
 
 
@@ -217,10 +258,21 @@ def assign_role(id):
 def get_user_sqls():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
+    type = request.args.get('type', SqlType['SQLADVISOR'])
     user_id = current_identity.id
-    sqls = Sql.query.filter_by(user_id=user_id).paginate(
-        page=page, per_page=per_page).items
+    sqls = Sql.query.filter_by(user_id=user_id).filter(
+        Sql.type == type).paginate(page=page, per_page=per_page).items
     sqls_json = SqlSchema(many=True).dump(sqls).data
+    for i, sql in enumerate(sqls):
+        mysql_tmp = sql.mysql
+        sqls_json[i]['mysql'] = {
+            'id': mysql_tmp.id,
+            'database': mysql_tmp.database,
+            'env': {
+                'name': mysql_tmp.env.name,
+                'name_zh': mysql_tmp.env.name_zh
+            }
+        }
     return jsonify(sqls_json)
 
 

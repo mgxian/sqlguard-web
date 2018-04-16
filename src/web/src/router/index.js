@@ -103,11 +103,26 @@ export const constantRouterMap = [
     ]
   },
   {
-    path: '/sql',
+    path: '/sql-optimize',
     component: Layout,
-    name: 'SQL管理',
+    name: 'SQL优化',
     redirect: '/sql/env',
-    meta: { title: 'SQL管理', icon: 'tree' },
+    meta: { title: 'SQL优化', icon: 'tree' },
+    children: [
+      {
+        path: 'history',
+        name: 'history',
+        component: () => import('@/views/sql/optimizeHistory'),
+        meta: { title: 'SQL优化', icon: 'tree' }
+      }
+    ]
+  },
+  {
+    path: '/sql-review',
+    component: Layout,
+    name: 'SQL审核',
+    redirect: '/sql/env',
+    meta: { title: 'SQL审核', icon: 'tree' },
     children: [
       {
         path: 'index',
@@ -116,13 +131,13 @@ export const constantRouterMap = [
         meta: { title: '我的申请', icon: 'tree' }
       },
       {
-        path: 'need-review',
+        path: 'review',
         name: '待审核',
         component: () => import('@/views/sql/needReviewSql'),
         meta: { title: '待审核', icon: 'tree' }
       },
       {
-        path: 'review-history',
+        path: 'history',
         name: '审核历史',
         component: () => import('@/views/sql/reviewHistory'),
         meta: { title: '审核历史', icon: 'tree' }
