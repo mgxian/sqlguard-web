@@ -201,7 +201,7 @@ export default {
 
 <style lang="stylus" scoped>
 .table-contanier
-  margin 10px
+  margin 10px 100px
   border-radius 3px
   border 1px solid #ebebeb
   padding 24px
