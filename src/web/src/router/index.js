@@ -46,7 +46,7 @@ export const constantRouterMap = [
     children: [
       {
         path: 'user',
-        name: 'User',
+        name: 'AdminUser',
         component: () => import('@/views/user/index'),
         meta: { title: '用户', icon: 'user' }
       },
@@ -121,7 +121,7 @@ export const constantRouterMap = [
     path: '/sql-review',
     component: Layout,
     name: 'Sql-review',
-    redirect: '/sql/env',
+    redirect: '/sql-review/index',
     meta: { title: 'SQL执行', icon: 'tree' },
     children: [
       {

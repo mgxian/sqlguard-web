@@ -1,6 +1,7 @@
 # coding:utf8
 from flask import request, jsonify, g, abort
 import logging
+import json
 from app import db
 from . import main
 from ..models import Sql, Mysql, Env, SqlType, SqlStatus, Permission, Role, User
@@ -171,19 +172,32 @@ def create_sql(mysql_id):
     sql_post = SqlPostSchema().get_sql_or_error(data)
     sql_post.user_id = current_identity.id
     sql_post.mysql_id = mysql_id
-    db.session.add(sql_post)
-    db.session.commit()
+    mysql = Mysql.query.get_or_404(mysql_id)
 
     if sql_post.type == SqlType['SQLADVISOR']:
-        logging.debug(type(sql_post))
-        logging.debug(sql_post.id)
-        sql_post.result_detail = sql_post.check()
+        sql_post.result_detail = mysql.get_sqladvisor_check_result(
+            sql_post.sql)
         result = [line for line in sql_post.result_detail.split(
             '\n') if line != ''][-2]
         sql_post.result = result.split('：')[-1]
         logging.debug(sql_post.result)
-        db.session.commit()
+    elif sql_post.type == SqlType['INCEPTION']:
+        result_detail = mysql.get_inception_check_result(sql_post.sql)
+        sql_post.result_detail = result_detail
+        result = []
+        for row in json.loads(result_detail):
+            msg = row.split('|')[1]
+            if msg != 'None':
+                result.append(row)
+        logging.debug(result)
+        sql_post.result = '||'.join(result)
+        if len(result) != 0:
+            return jsonify(SqlSchema().dump(sql_post).data), 400
+    else:
+        sql_post.result = 'not support type'
 
+    db.session.add(sql_post)
+    db.session.commit()
     return jsonify(SqlSchema().dump(sql_post).data), 201
 
 

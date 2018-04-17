@@ -6,8 +6,9 @@
       <el-button @click="handleCreate" type="primary" icon="el-icon-edit">添加</el-button>
     </div>
     <el-table class="table" v-loading.body="listLoading" element-loading-text="拼命加载中" :data="sqls">
-      <el-table-column align="center" label="数据库">
+      <el-table-column label="数据库">
         <template slot-scope="scope">
+          {{scope.row.mysql.database}}
           <el-tag v-if="filter.name === scope.row.mysql.env.name" v-for="filter in envFilters" :key="filter.name" :type="filter.type" close-transition>
             {{scope.row.mysql.env.name_zh}}
           </el-tag>

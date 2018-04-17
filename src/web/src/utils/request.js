@@ -52,11 +52,14 @@ service.interceptors.response.use(
     } else {
       errMsg = errorResp.description
     }
-    Message({
-      message: errMsg,
-      type: 'error',
-      duration: 3 * 1000
-    })
+    if (errMsg && errMsg !== '') {
+      Message({
+        message: errMsg,
+        type: 'error',
+        duration: 3 * 1000
+      })
+    }
+
     return Promise.reject(error)
   }
 )

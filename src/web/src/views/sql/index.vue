@@ -6,39 +6,35 @@
       <el-button @click="handleCreate" type="primary" icon="el-icon-edit">添加</el-button>
     </div>
     <el-table class="table" v-loading.body="listLoading" element-loading-text="拼命加载中" :data="sqls">
-      <el-table-column align="center" prop="id" label="ID" sortable>
-      </el-table-column>
-      <el-table-column align="center" prop="mysql_id" label="MySQL-ID">
+      <el-table-column label="数据库">
+        <template slot-scope="scope">
+          {{scope.row.mysql.database}}
+          <el-tag v-if="filter.name === scope.row.mysql.env.name" v-for="filter in envFilters" :key="filter.name" :type="filter.type" close-transition>
+            {{scope.row.mysql.env.name_zh}}
+          </el-tag>
+        </template>
       </el-table-column>
       <el-table-column align="center" prop="sql" label="SQL">
       </el-table-column>
-      <el-table-column align="center" prop="type" label="类型">
-      </el-table-column>
-      <el-table-column align="center" prop="user_id" label="用户">
-      </el-table-column>
-      <el-table-column align="center" prop="status" label="状态">
-      </el-table-column>
-      <el-table-column align="center" prop="result" label="结果">
+      <el-table-column align="center" prop="result" label="语法检查结果">
       </el-table-column>
     </el-table>
     <el-dialog title="添加" :visible.sync="dialogCreateVisible">
-      <el-form v-if="temp" class="form" label-position="left" label-width="80px" :model="temp">
+      <el-form class="form" label-position="left" label-width="80px" :model="temp">
+        <el-form-item label="环境">
+          <el-select v-model="selectedEnv" placeholder="请选择">
+            <el-option v-for="item in envOptions" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="数据库">
           <el-select v-model="temp.mysql_id" placeholder="请选择">
             <el-option v-for="item in mysqlOptions" :key="item.value" :label="item.label" :value="item.value">
-              <span style="float: left;width: 250px">{{ item.label }}</span>
-              <el-tag type="primary" style="margin-left: 10px">{{ item.value }}</el-tag>
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="SQL语句">
           <el-input v-model="temp.sql" type="textarea" placeholder="请输入SQL" clearable></el-input>
-        </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="temp.type" placeholder="请选择">
-            <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value">
-            </el-option>
-          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -46,12 +42,32 @@
         <el-button type="primary" @click="createSql">确定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="语法检查结果" :visible.sync="dialogResultVisible">
+      <div v-if="isHaveError">
+        <h4>SQL: {{resultSql}}</h4>
+        <li v-for="(line,index) in resultText" :key="index">
+          {{line.sql}}
+          <ul v-for="(line,index) in line.result" :key="index">{{line}}</ul>
+        </li>
+      </div>
+      <h3 v-if="!isHaveError">
+        {{reviewPassText}}
+        <i class="el-icon-circle-check"></i>
+      </h3>
+      <h3 v-if="isHaveError">
+        {{reviewNoPassText}}
+        <i class="el-icon-circle-close"></i>
+      </h3>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogResultVisible = false">确定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getSqls, createSql } from '@/api/sql'
-import { getMySQLs } from '@/api/db'
+import { getMySQLs, getEnvs } from '@/api/db'
 
 const TYPE_INCEPTION = 1
 export default {
@@ -59,18 +75,62 @@ export default {
     return {
       sqls: [],
       listLoading: true,
+      queryText: '',
+      result: '',
+      resultSql: '',
+      resultText: [],
+      temp: {},
       dialogCreateVisible: false,
+      dialogResultVisible: false,
       mysqlOptions: [],
-      typeOptions: [
-        { value: 0, label: '优化建议' },
-        { value: 1, label: '执行' }
+      envOptions: [],
+      selectedEnv: '',
+      envFilters: [
+        { name: 'Development', type: 'info' },
+        { name: 'Staging', type: 'warning' },
+        { name: 'Production', type: 'danger' }
       ],
-      temp: Object,
-      queryText: ''
+      reviewPassText: '语法检查通过',
+      reviewNoPassText: '语法检查不通过'
     }
   },
   created() {
     this.fetchSqls()
+  },
+  watch: {
+    selectedEnv: function() {
+      this.getMysqlOptions()
+    },
+    result: function() {
+      this.resultSql = this.temp.sql
+      if (this.result.length === 0) {
+        this.resultText = []
+        return
+      }
+
+      const rows = this.result.split('||')
+      const sqlResuts = []
+      rows.forEach(row => {
+        const tmp = row.split('|')
+        const sql = tmp[0]
+        const result = tmp[1]
+        sqlResuts.push({
+          sql,
+          result: result.split('\n')
+        })
+      })
+
+      this.resultText = sqlResuts
+      console.log(this.resultText)
+    }
+  },
+  computed: {
+    isHaveError() {
+      if (this.resultText.length === 0) {
+        return false
+      }
+      return true
+    }
   },
   methods: {
     fetchSqls() {
@@ -83,31 +143,56 @@ export default {
     },
     handleCreate() {
       this.resetTemp()
-      this.getMysqlOptions()
+      this.getEnvOptions()
       this.dialogCreateVisible = true
     },
     resetTemp() {
       this.temp = {
         mysql_id: '',
         sql: '',
-        type: 0
+        selectedEnv: '',
+        type: TYPE_INCEPTION
       }
     },
-    getMysqlOptions() {
-      if (this.mysqlOptions.length !== 0) {
+    getEnvOptions() {
+      if (this.envOptions.length !== 0) {
         return
       }
-      getMySQLs().then(response => {
+      getEnvs().then(response => {
+        response.forEach(env => {
+          this.envOptions.push({ value: env.id, label: env.name_zh })
+        })
+      })
+    },
+    getMysqlOptions() {
+      this.mysqlOptions = []
+      getMySQLs(this.selectedEnv).then(response => {
         response.forEach(mysql => {
-          const labelText = mysql.host + ':' + mysql.port + '/' + mysql.database
+          // const labelText = mysql.host + ':' + mysql.port + '/' + mysql.database
+          const labelText = mysql.database
           this.mysqlOptions.push({ value: mysql.id, label: labelText })
         })
       })
     },
     createSql() {
-      createSql(this.temp).then(response => {
-        this.dialogCreateVisible = false
-        this.fetchSqls()
+      this.dialogCreateVisible = false
+      createSql(this.temp)
+        .then(response => {
+          this.result = response.result
+          this.dialogResultVisible = true
+          this.fetchSqls()
+        })
+        .catch(error => {
+          this.result = error.response.data.result
+          this.dialogResultVisible = true
+          this.fetchSqls()
+        })
+    },
+    showResult(result) {
+      this.$alert(result, '基础检查', {
+        confirmButtonText: '确定',
+        lockScroll: false,
+        callback: action => {}
       })
     }
   }
@@ -124,4 +209,15 @@ export default {
   .table-header
     .search-input
       width 25%
+
+  .el-icon-circle-check, .el-icon-circle-close
+    font-size 24px
+    line-height 24px
+    vertical-align top
+
+  .el-icon-circle-check
+    color green
+
+  .el-icon-circle-close
+    color red
 </style>

@@ -1,5 +1,6 @@
 # coding:utf8
 import logging
+import json
 from flask import current_app
 import MySQLdb as mysql_db
 from subprocess import Popen, PIPE
@@ -276,21 +277,25 @@ class Mysql(db.Model):
             num_fields = len(cur.description)
             field_names = [i[0] for i in cur.description]
             print(field_names)
-            res = ""
+            res = []
             for row in result[1:]:
-                res += row[5] + "|" + row[4] + "|" + row[8] + "\n"
+                logging.debug(row)
+                # http://mysql-inception.github.io/inception-document/results/#inception
+                res.append(row[5] + "|" + row[4])
             cur.close()
             conn.close()
             # return full_inception_sql + "\n" + res
             print('---------->')
             print(full_inception_sql)
             print(res)
-            logging.info(full_inception_sql)
-            logging.info(res)
-            return res
+            # logging.info(full_inception_sql)
+            # logging.info(res)
+            # logging.debug(cur.description)
+            # logging.debug(result)
+            return json.dumps(res)
         except mysql_db.Error as e:
             print("Mysql Error %d: %s" % (e.args[0], e.args[1]))
-            return "error"
+            return 'error'
 
     def to_json(self):
         json_mysql = {
@@ -330,6 +335,7 @@ class Sql(db.Model):
     mysql_id = db.Column(db.Integer, db.ForeignKey('mysqls.id'))
     result = db.Column(db.Text)
     result_detail = db.Column(db.Text)
+    result_execute = db.Column(db.Text)
 
     def __init__(self, **kargs):
         super(Sql, self).__init__(**kargs)
