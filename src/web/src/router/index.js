@@ -41,7 +41,7 @@ export const constantRouterMap = [
     path: '/admin',
     component: Layout,
     redirect: '/admin/user',
-    name: '用户管理',
+    name: 'Admin',
     meta: { title: '用户管理', icon: 'example' },
     children: [
       {
@@ -63,7 +63,7 @@ export const constantRouterMap = [
     path: '/user',
     component: Layout,
     hidden: true,
-    name: '用户',
+    name: 'User',
     meta: { title: '用户', icon: 'user' },
     children: [
       {
@@ -84,7 +84,7 @@ export const constantRouterMap = [
   {
     path: '/db',
     component: Layout,
-    name: '数据库管理',
+    name: 'Db',
     redirect: '/db/env',
     meta: { title: '数据库管理', icon: 'tree' },
     children: [
@@ -105,9 +105,9 @@ export const constantRouterMap = [
   {
     path: '/sql-optimize',
     component: Layout,
-    name: 'SQL优化',
-    redirect: '/sql/env',
-    meta: { title: 'SQL优化', icon: 'tree' },
+    name: 'Sql-optimize',
+    redirect: '/sql-optimize/history',
+    // meta: { title: 'SQL优化', icon: 'tree' },
     children: [
       {
         path: 'history',
@@ -120,9 +120,9 @@ export const constantRouterMap = [
   {
     path: '/sql-review',
     component: Layout,
-    name: 'SQL审核',
+    name: 'Sql-review',
     redirect: '/sql/env',
-    meta: { title: 'SQL审核', icon: 'tree' },
+    meta: { title: 'SQL执行', icon: 'tree' },
     children: [
       {
         path: 'index',
@@ -146,13 +146,13 @@ export const constantRouterMap = [
   },
   {
     path: '/forget_password',
-    name: '忘记密码',
+    name: 'ForgetPassword',
     component: () => import('@/views/user/forgetPassword'),
     meta: { title: '忘记密码', icon: 'user' }
   },
   {
     path: '/reset_password',
-    name: '重置密码',
+    name: 'ResetPassword',
     component: () => import('@/views/user/resetPassword'),
     meta: { title: '重置密码', icon: 'user' }
   },

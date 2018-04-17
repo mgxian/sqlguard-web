@@ -41,6 +41,12 @@
         <el-button type="primary" @click="createSql">确定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="优化建议" :visible.sync="dialogResultVisible">
+      {{resultText}}
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="dialogResultVisible = false">确定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -56,8 +62,10 @@ export default {
       sqls: [],
       listLoading: true,
       queryText: '',
+      resultText: '',
       temp: {},
       dialogCreateVisible: false,
+      dialogResultVisible: false,
       mysqlOptions: [],
       envOptions: [],
       selectedEnv: '',
@@ -119,9 +127,20 @@ export default {
       })
     },
     createSql() {
+      this.dialogCreateVisible = false
       createSql(this.temp).then(response => {
         this.dialogCreateVisible = false
+        this.resultText = response.result
+        this.dialogResultVisible = true
+        // this.showResult(response.result)
         this.fetchSqls()
+      })
+    },
+    showResult(result) {
+      this.$alert(result, '优化建议', {
+        confirmButtonText: '确定',
+        lockScroll: false,
+        callback: action => {}
       })
     }
   }
