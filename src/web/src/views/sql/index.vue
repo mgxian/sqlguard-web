@@ -18,6 +18,8 @@
       </el-table-column>
       <el-table-column align="center" prop="result" label="语法检查结果">
       </el-table-column>
+      <el-table-column align="center" prop="result_execute" label="执行结果">
+      </el-table-column>
     </el-table>
     <el-dialog title="添加" :visible.sync="dialogCreateVisible">
       <el-form class="form" label-position="left" label-width="80px" :model="temp">
@@ -121,7 +123,7 @@ export default {
       })
 
       this.resultText = sqlResuts
-      console.log(this.resultText)
+      // console.log(this.resultText)
     }
   },
   computed: {

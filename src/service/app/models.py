@@ -240,9 +240,26 @@ class Mysql(db.Model):
 
         print(cmd)
         logging.info(cmd)
-        # logging.warning(cmd)
-        res = Popen(cmd, stderr=PIPE, shell=True).stderr.read()
-        return res
+        result_detail = Popen(cmd, stderr=PIPE, shell=True).stderr.read().strip('\n').strip()
+        logging.info(result_detail)
+
+        ok = True
+        if 'SQLAdvisor结束' in result_detail:
+            res_len = len(result_detail.split('错误日志'))
+            if res_len > 1:
+                result_detail = result_detail.split('错误日志')[1:res_len].strip(':')
+                ok = False
+        else:
+            ok = False
+
+        if ok:
+            result = [line for line in result_detail.split(
+                '\n') if line != ''][-2]
+            result = result.split('：')[-1]
+        else:
+            result = result_detail
+
+        return result, result_detail, ok
 
     def get_inception_check_result(self, sql):
         return self.execute_in_inception(sql, check=True)
@@ -258,6 +275,7 @@ class Mysql(db.Model):
         password = s.loads(self.password_secret).get('password', '')
 
         inception_extra_args = '/*--check=1;' if check else '/*--execute=1;'
+        inception_extra_args += '--disable-remote-backup;'
         inception_prefix = '--user={};--password={};--host={};--port={};*/inception_magic_start;use {};'.format(
             self.username, password, self.host, self.port, self.database)
 
@@ -267,35 +285,37 @@ class Mysql(db.Model):
         inception_suffix = 'inception_magic_commit;'
         full_inception_sql = inception_extra_args + \
             inception_prefix + sql + inception_suffix
-        # return full_inception_sql
-        try:
-            conn = mysql_db.connect(host=inception_host, user='',
-                                    passwd='', db='', port=int(inception_port))
-            cur = conn.cursor()
-            ret = cur.execute(full_inception_sql)
-            result = cur.fetchall()
-            num_fields = len(cur.description)
-            field_names = [i[0] for i in cur.description]
-            print(field_names)
-            res = []
-            for row in result[1:]:
+        result_raw, ok = self.execute_inception_sql(
+            inception_host, inception_port, full_inception_sql)
+
+        if ok:
+            result_detail = []
+            result = []
+            for row in result_raw:
                 logging.debug(row)
                 # http://mysql-inception.github.io/inception-document/results/#inception
-                res.append(row[5] + "|" + row[4])
+                result_detail.append(row[5] + "|" + row[4])
+                if row[4] != 'None':
+                    result.append(row[5] + "|" + row[4])
+            return "||".join(result), json.dumps(result_detail), ok
+
+        return result_detail, result_detail, ok
+
+    def execute_inception_sql(self, host, port, sql):
+        try:
+            conn = mysql_db.connect(host=host, user='',
+                                    passwd='', db='', port=int(port))
+            cur = conn.cursor()
+            cur.execute(sql)
+            result = cur.fetchall()
+            # num_fields = len(cur.description)
+            # field_names = [i[0] for i in cur.description]
             cur.close()
             conn.close()
-            # return full_inception_sql + "\n" + res
-            print('---------->')
-            print(full_inception_sql)
-            print(res)
-            # logging.info(full_inception_sql)
-            # logging.info(res)
-            # logging.debug(cur.description)
-            # logging.debug(result)
-            return json.dumps(res)
-        except mysql_db.Error as e:
-            print("Mysql Error %d: %s" % (e.args[0], e.args[1]))
-            return 'error'
+            return result, True
+        except Exception as e:
+            errMsg = "Mysql Error {}: {}".format(e.args[0], e.args[1])
+            return errMsg, False
 
     def to_json(self):
         json_mysql = {
@@ -336,6 +356,7 @@ class Sql(db.Model):
     result = db.Column(db.Text)
     result_detail = db.Column(db.Text)
     result_execute = db.Column(db.Text)
+    result_detail_execute = db.Column(db.Text)
 
     def __init__(self, **kargs):
         super(Sql, self).__init__(**kargs)
@@ -358,21 +379,17 @@ class Sql(db.Model):
 
     def check(self):
         if self.type == SqlType['SQLADVISOR']:
-            result = self.mysql.get_sqladvisor_check_result(self.sql)
+            return self.mysql.get_sqladvisor_check_result(self.sql)
         elif self.type == SqlType['INCEPTION']:
-            result = self.mysql.get_inception_check_result(self.sql)
+            return self.mysql.get_inception_check_result(self.sql)
         else:
-            result = ''
-        print('--------------->check ', result)
-        return result
+            return '', '', False
 
     def execute(self):
         if self.type == SqlType['INCEPTION']:
-            result = self.mysql.get_inception_execute_result(self.sql)
+            return self.mysql.get_inception_execute_result(self.sql)
         else:
-            result = ''
-        print('--------------->execute ', result)
-        return result
+            return '', '', False
 
     def to_json(self):
         json_sql = {

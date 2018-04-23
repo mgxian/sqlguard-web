@@ -50,7 +50,7 @@ class MysqlSchema(ma.ModelSchema):
 class SqlSchema(ma.ModelSchema):
     class Meta:
         fields = ('id', 'sql', 'result', 'type',
-                  'status', 'user_id', 'mysql_id')
+                  'status', 'user_id', 'mysql_id', 'result_execute')
         model = Sql
 
 

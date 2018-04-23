@@ -175,23 +175,18 @@ def create_sql(mysql_id):
     mysql = Mysql.query.get_or_404(mysql_id)
 
     if sql_post.type == SqlType['SQLADVISOR']:
-        sql_post.result_detail = mysql.get_sqladvisor_check_result(
+        sql_post.result, sql_post.result_detail,  ok = mysql.get_sqladvisor_check_result(
             sql_post.sql)
-        result = [line for line in sql_post.result_detail.split(
-            '\n') if line != ''][-2]
-        sql_post.result = result.split('：')[-1]
-        logging.debug(sql_post.result)
+        if not ok:
+            return jsonify(SqlSchema().dump(sql_post).data), 400
+
     elif sql_post.type == SqlType['INCEPTION']:
-        result_detail = mysql.get_inception_check_result(sql_post.sql)
-        sql_post.result_detail = result_detail
-        result = []
-        for row in json.loads(result_detail):
-            msg = row.split('|')[1]
-            if msg != 'None':
-                result.append(row)
-        logging.debug(result)
-        sql_post.result = '||'.join(result)
-        if len(result) != 0:
+        result, sql_post.result_detail, ok = mysql.get_inception_check_result(
+            sql_post.sql)
+        sql_post.result = result
+        # logging.debug(sql_post.result_detail)
+        # logging.debug(sql_post.result)
+        if len(sql_post.result) != 0:
             return jsonify(SqlSchema().dump(sql_post).data), 400
     else:
         sql_post.result = 'not support type'
@@ -245,11 +240,23 @@ def execute_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql is None:
         return abort(404)
-    sql.result = sql.execute()
+    result, result_detail, ok = sql.execute()
+    sql.result_execute = result
+    sql.result_detail_execute = result_detail
     sql.status = SqlStatus['DONE']
-    print(sql.result)
     db.session.commit()
-    return ('', 200)
+    logging.debug(ok)
+    sql_json = SqlSchema().dump(sql).data
+    mysql_tmp = sql.mysql
+    sql_json['mysql'] = {
+        'id': mysql_tmp.id,
+        'database': mysql_tmp.database,
+        'env': {
+            'name': mysql_tmp.env.name,
+            'name_zh': mysql_tmp.env.name_zh
+        }
+    }
+    return jsonify(sql_json)
 
 
 @main.route('/user/<int:id>/role', methods=['POST'])
@@ -304,4 +311,14 @@ def get_sqls_by_status():
         sqls = Sql.query.filter_by(type=SqlType['INCEPTION']).filter(Sql.status != status).paginate(
             page=page, per_page=per_page).items
     sqls_json = SqlSchema(many=True).dump(sqls).data
+    for i, sql in enumerate(sqls):
+        mysql_tmp = sql.mysql
+        sqls_json[i]['mysql'] = {
+            'id': mysql_tmp.id,
+            'database': mysql_tmp.database,
+            'env': {
+                'name': mysql_tmp.env.name,
+                'name_zh': mysql_tmp.env.name_zh
+            }
+        }
     return jsonify(sqls_json)
