@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function getSqls(type) {
+export function getMySqls(type) {
   return request({
     url: '/user/sqls',
     method: 'get',
@@ -40,7 +40,8 @@ export function createSql(sql) {
     method: 'post',
     data: {
       sql: sql.sql,
-      type: sql.type
+      type: sql.type,
+      reviewer_id: sql.reviewer_id
     }
   })
 }

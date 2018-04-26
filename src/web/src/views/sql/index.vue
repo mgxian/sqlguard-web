@@ -35,6 +35,12 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="执行人">
+          <el-select v-model="temp.reviewer_id" placeholder="请选择">
+            <el-option v-for="item in reviewerOptions" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="SQL语句">
           <el-input v-model="temp.sql" type="textarea" placeholder="请输入SQL" clearable></el-input>
         </el-form-item>
@@ -68,10 +74,12 @@
 </template>
 
 <script>
-import { getSqls, createSql } from '@/api/sql'
+import { getMySqls, createSql } from '@/api/sql'
 import { getMySQLs, getEnvs } from '@/api/db'
+import { getUsers } from '@/api/user'
 
 const TYPE_INCEPTION = 1
+const TYPE = 0
 export default {
   data() {
     return {
@@ -86,6 +94,7 @@ export default {
       dialogResultVisible: false,
       mysqlOptions: [],
       envOptions: [],
+      reviewerOptions: [],
       selectedEnv: '',
       envFilters: [
         { name: 'Development', type: 'info' },
@@ -102,6 +111,7 @@ export default {
   watch: {
     selectedEnv: function() {
       this.getMysqlOptions()
+      this.getReviewerOptions()
     },
     result: function() {
       this.resultSql = this.temp.sql
@@ -137,7 +147,7 @@ export default {
   methods: {
     fetchSqls() {
       this.listLoading = true
-      getSqls(TYPE_INCEPTION).then(response => {
+      getMySqls(TYPE).then(response => {
         this.sqls = response
         this.listLoading = false
         // console.log(this.sqls)
@@ -176,19 +186,24 @@ export default {
         })
       })
     },
+    getReviewerOptions() {
+      this.reviewerOptions = []
+      getUsers().then(response => {
+        response.forEach(user => {
+          const labelText = user.name
+          this.reviewerOptions.push({ value: user.id, label: labelText })
+        })
+      })
+    },
     createSql() {
       this.dialogCreateVisible = false
-      createSql(this.temp)
-        .then(response => {
+      createSql(this.temp).then(response => {
+        if (response.result !== undefined) {
           this.result = response.result
           this.dialogResultVisible = true
           this.fetchSqls()
-        })
-        .catch(error => {
-          this.result = error.response.data.result
-          this.dialogResultVisible = true
-          this.fetchSqls()
-        })
+        }
+      })
     },
     showResult(result) {
       this.$alert(result, '基础检查', {

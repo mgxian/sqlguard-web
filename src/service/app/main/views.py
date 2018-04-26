@@ -178,16 +178,18 @@ def create_sql(mysql_id):
         sql_post.result, sql_post.result_detail,  ok = mysql.get_sqladvisor_check_result(
             sql_post.sql)
         if not ok:
-            return jsonify(SqlSchema().dump(sql_post).data), 400
+            return jsonify(SqlSchema().dump(sql_post).data)
 
     elif sql_post.type == SqlType['INCEPTION']:
+        logging.debug(data)
+        if sql_post.reviewer_id == None:
+            return bad_request("need a reviewer")
         result, sql_post.result_detail, ok = mysql.get_inception_check_result(
             sql_post.sql)
         sql_post.result = result
         # logging.debug(sql_post.result_detail)
-        # logging.debug(sql_post.result)
         if len(sql_post.result) != 0:
-            return jsonify(SqlSchema().dump(sql_post).data), 400
+            return jsonify(SqlSchema().dump(sql_post).data)
     else:
         sql_post.result = 'not support type'
 
@@ -235,15 +237,21 @@ def check_sql(mysql_id, id):
 
 @main.route('/mysql/<int:mysql_id>/sql/<int:id>/execute', methods=['POST'])
 @jwt_required()
-@permission_required(Permission.EXECUTE)
 def execute_sql(mysql_id, id):
     sql = Sql.query.filter_by(mysql_id=mysql_id, id=id).first()
     if sql is None:
         return abort(404)
+    if sql.mysql.env.name == 'Production':
+        user = User.query.get(current_identity.id)
+        if user is None or not user.role.has_permission(Permission.EXECUTE):
+            return forbidden('you have no permission')
     result, result_detail, ok = sql.execute()
     sql.result_execute = result
     sql.result_detail_execute = result_detail
-    sql.status = SqlStatus['DONE']
+    if ok:
+        sql.status = SqlStatus['DONE']
+    else:
+        sql.status = SqlStatus['FAILURE']
     db.session.commit()
     logging.debug(ok)
     sql_json = SqlSchema().dump(sql).data
@@ -279,10 +287,29 @@ def assign_role(id):
 def get_user_sqls():
     page = request.args.get('page', 1)
     per_page = request.args.get('per_page', 10)
-    type = request.args.get('type', SqlType['SQLADVISOR'])
+    type = request.args.get('type')
     user_id = current_identity.id
-    sqls = Sql.query.filter_by(user_id=user_id).filter(
-        Sql.type == type).paginate(page=page, per_page=per_page).items
+    # INCEPTION type
+    if type:
+        # my applications
+        if type == '0':
+            sqls = Sql.query.filter_by(user_id=user_id).filter(
+                Sql.type == SqlType['INCEPTION']).paginate(page=page, per_page=per_page).items
+
+        # need me reviews
+        elif type == '1':
+            sqls = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
+                Sql.status == SqlStatus['AUDIT']).paginate(page=page, per_page=per_page).items
+
+        # my review history
+        else:
+            sqls = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
+                Sql.status != SqlStatus['AUDIT']).paginate(page=page, per_page=per_page).items
+
+    # SQLADVISOR type
+    else:
+        sqls = Sql.query.filter_by(user_id=user_id).filter(
+            Sql.type == SqlType['SQLADVISOR']).paginate(page=page, per_page=per_page).items
     sqls_json = SqlSchema(many=True).dump(sqls).data
     for i, sql in enumerate(sqls):
         mysql_tmp = sql.mysql
@@ -294,6 +321,10 @@ def get_user_sqls():
                 'name_zh': mysql_tmp.env.name_zh
             }
         }
+        if sql.result == '':
+            sqls_json[i]['result'] = '通过'
+        if sql.result_execute == '':
+            sqls_json[i]['result_execute'] = '成功'
     return jsonify(sqls_json)
 
 

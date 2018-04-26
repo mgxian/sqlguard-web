@@ -50,7 +50,7 @@ class MysqlSchema(ma.ModelSchema):
 class SqlSchema(ma.ModelSchema):
     class Meta:
         fields = ('id', 'sql', 'result', 'type',
-                  'status', 'user_id', 'mysql_id', 'result_execute')
+                  'status', 'user_id', 'mysql_id', 'result_execute', 'note', 'reviewer_id')
         model = Sql
 
 
@@ -136,6 +136,7 @@ class SqlPutSchema(ma.Schema):
 class SqlPostSchema(SqlPutSchema):
     sql = fields.Str(required=True)
     type = fields.Int()
+    reviewer_id = fields.Int()
 
 
 class LoginSchema(ma.Schema):

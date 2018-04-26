@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { getSqls, createSql } from '@/api/sql'
+import { getMySqls, createSql } from '@/api/sql'
 import { getMySQLs, getEnvs } from '@/api/db'
 
 const TYPE_SQLADVISOR = 0
@@ -88,7 +88,7 @@ export default {
   methods: {
     fetchSqls() {
       this.listLoading = true
-      getSqls(TYPE_SQLADVISOR).then(response => {
+      getMySqls().then(response => {
         this.sqls = response
         this.listLoading = false
         // console.log(this.sqls)

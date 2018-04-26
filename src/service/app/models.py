@@ -240,14 +240,16 @@ class Mysql(db.Model):
 
         print(cmd)
         logging.info(cmd)
-        result_detail = Popen(cmd, stderr=PIPE, shell=True).stderr.read().strip('\n').strip()
+        result_detail = Popen(
+            cmd, stderr=PIPE, shell=True).stderr.read().strip('\n').strip()
         logging.info(result_detail)
 
         ok = True
         if 'SQLAdvisor结束' in result_detail:
             res_len = len(result_detail.split('错误日志'))
             if res_len > 1:
-                result_detail = result_detail.split('错误日志')[1:res_len].strip(':')
+                result_detail = result_detail.split(
+                    '错误日志')[1:res_len].strip(':')
                 ok = False
         else:
             ok = False
@@ -299,7 +301,7 @@ class Mysql(db.Model):
                     result.append(row[5] + "|" + row[4])
             return "||".join(result), json.dumps(result_detail), ok
 
-        return result_detail, result_detail, ok
+        return result_raw, result_raw, ok
 
     def execute_inception_sql(self, host, port, sql):
         try:
@@ -353,6 +355,8 @@ class Sql(db.Model):
     status = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     mysql_id = db.Column(db.Integer, db.ForeignKey('mysqls.id'))
+    reviewer_id = db.Column(db.Integer, default=0)
+    note = db.Column(db.String(128), nullable=True)
     result = db.Column(db.Text)
     result_detail = db.Column(db.Text)
     result_execute = db.Column(db.Text)

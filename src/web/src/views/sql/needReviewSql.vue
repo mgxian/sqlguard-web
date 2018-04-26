@@ -57,8 +57,8 @@
 </template>
 
 <script>
-import { getNeedReviewSqls, executeSql } from '@/api/sql'
-
+import { getMySqls, executeSql } from '@/api/sql'
+const TYPE = 1
 export default {
   data() {
     return {
@@ -118,7 +118,7 @@ export default {
   methods: {
     fetchSqls() {
       this.listLoading = true
-      getNeedReviewSqls(this.status).then(response => {
+      getMySqls(TYPE).then(response => {
         this.sqls = response
         this.listLoading = false
         // console.log(this.sqls)

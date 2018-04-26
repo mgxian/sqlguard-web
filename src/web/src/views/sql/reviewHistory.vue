@@ -24,9 +24,9 @@
 </template>
 
 <script>
-import { getSqls } from '@/api/sql'
+import { getMySqls } from '@/api/sql'
 
-const TYPE_INCEPTION = 1
+const TYPE = 2
 export default {
   data() {
     return {
@@ -46,7 +46,7 @@ export default {
   methods: {
     fetchSqls() {
       this.listLoading = true
-      getSqls(TYPE_INCEPTION).then(response => {
+      getMySqls(TYPE).then(response => {
         this.sqls = response
         this.listLoading = false
         // console.log(this.sqls)
