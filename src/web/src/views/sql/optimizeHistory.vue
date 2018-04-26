@@ -43,7 +43,14 @@
       </span>
     </el-dialog>
     <el-dialog title="优化建议" :visible.sync="dialogResultVisible">
-      {{resultText}}
+      <h3 v-if="!isHaveError">
+        {{resultText}}
+        <i class="el-icon-circle-check"></i>
+      </h3>
+      <h3 v-if="isHaveError">
+        {{resultText}}
+        <i class="el-icon-circle-close"></i>
+      </h3>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="dialogResultVisible = false">确定</el-button>
       </span>
@@ -74,7 +81,8 @@ export default {
         { name: 'Development', type: 'info' },
         { name: 'Staging', type: 'warning' },
         { name: 'Production', type: 'danger' }
-      ]
+      ],
+      isHaveError: false
     }
   },
   created() {
@@ -131,7 +139,14 @@ export default {
       this.dialogCreateVisible = false
       createSql(this.temp).then(response => {
         this.dialogCreateVisible = false
-        this.resultText = response.result
+        if (response.has_error) {
+          this.resultText = '系统错误，无法给出优化建议'
+          this.isHaveError = true
+        } else {
+          this.resultText = response.result
+          this.isHaveError = false
+        }
+
         this.dialogResultVisible = true
         // this.showResult(response.result)
         this.fetchSqls()
@@ -158,4 +173,15 @@ export default {
   .table-header
     .search-input
       width 25%
+
+  .el-icon-circle-check, .el-icon-circle-close
+    font-size 24px
+    line-height 24px
+    vertical-align top
+
+  .el-icon-circle-check
+    color green
+
+  .el-icon-circle-close
+    color red
 </style>

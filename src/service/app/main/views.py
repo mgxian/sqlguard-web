@@ -178,7 +178,9 @@ def create_sql(mysql_id):
         sql_post.result, sql_post.result_detail,  ok = mysql.get_sqladvisor_check_result(
             sql_post.sql)
         if not ok:
-            return jsonify(SqlSchema().dump(sql_post).data)
+            sql_json = SqlSchema().dump(sql_post).data
+            sql_json['has_error'] = True
+            return jsonify(sql_json)
 
     elif sql_post.type == SqlType['INCEPTION']:
         logging.debug(data)

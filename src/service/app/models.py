@@ -258,6 +258,9 @@ class Mysql(db.Model):
             result = [line for line in result_detail.split(
                 '\n') if line != ''][-2]
             result = result.split('：')[-1]
+            if '[Note]' in result and 'SQL解析优化' in result:
+                ok = False
+                result = ''
         else:
             result = result_detail
 
