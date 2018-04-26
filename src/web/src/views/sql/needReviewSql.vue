@@ -34,11 +34,13 @@
       </span>
     </el-dialog>
     <el-dialog title="执行结果" :visible.sync="dialogResultVisible">
-      <div v-if="isHaveError">
+      <div v-if="result !== ''">
         <h4>SQL: {{resultSql}}</h4>
         <li v-for="(line,index) in resultText" :key="index">
-          {{line.sql}}
-          <ul v-for="(line,index) in line.result" :key="index">{{line}}</ul>
+          {{line.sql}}{{line.affectedRows}}
+          <ul v-for="(line,index) in line.result" :key="index">
+            <span v-if="line !== 'None'">{{line}}</span>
+          </ul>
         </li>
       </div>
       <h3 v-if="!isHaveError">
@@ -77,7 +79,8 @@ export default {
       resultText: [],
       executeSuccessText: '执行成功',
       executeFailureText: '执行失败',
-      temp: {}
+      temp: {},
+      errorFlag: false
     }
   },
   created() {
@@ -85,10 +88,10 @@ export default {
   },
   computed: {
     isHaveError() {
-      if (this.resultText.length === 0) {
-        return false
+      if (this.errorFlag) {
+        return true
       }
-      return true
+      return false
     }
   },
   watch: {
@@ -105,9 +108,19 @@ export default {
         const tmp = row.split('|')
         const sql = tmp[0]
         const result = tmp[1]
+        let affectedRows = tmp[2]
+        if (this.errorFlag) {
+          affectedRows = `（预计影响行数：${affectedRows}）`
+        } else {
+          affectedRows = `（影响行数：${affectedRows}）`
+        }
+        if (result !== 'None') {
+          this.errorFlag = true
+        }
         sqlResuts.push({
           sql,
-          result: result.split('\n')
+          result: result.split('\n'),
+          affectedRows: affectedRows
         })
       })
 

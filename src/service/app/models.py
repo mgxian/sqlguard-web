@@ -296,9 +296,13 @@ class Mysql(db.Model):
             for row in result_raw:
                 logging.debug(row)
                 # http://mysql-inception.github.io/inception-document/results/#inception
-                result_detail.append(row[5] + "|" + row[4])
-                if row[4] != 'None':
-                    result.append(row[5] + "|" + row[4])
+                if check:
+                    result_detail.append(row[5] + "|" + row[4])
+                    if row[4] != 'None':
+                        result.append(row[5] + "|" + row[4])
+                else:
+                    result_detail.append(row[5] + "|" + row[4] + "|" + str(row[6]))
+                    result.append(row[5] + "|" + row[4] + "|" + str(row[6]))
             return "||".join(result), json.dumps(result_detail), ok
 
         return result_raw, result_raw, ok
