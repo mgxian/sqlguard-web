@@ -15,6 +15,10 @@
         </template>
       </el-table-column>
     </el-table>
+    <div v-if="users.length>0" class="page">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -30,7 +34,11 @@ export default {
         { text: '管理员', value: 'Administrator', type: 'primary' },
         { text: '经理（主管）', value: 'Manager', type: 'success' },
         { text: '研发', value: 'User', type: 'info' }
-      ]
+      ],
+      currentPage: 1,
+      total: 40,
+      pageSizes: [10, 20, 50, 100],
+      pageSize: 10
     }
   },
   created() {
@@ -42,11 +50,22 @@ export default {
     },
     fetchUsers() {
       this.listLoading = true
-      getUsers().then(response => {
-        this.users = response
+      getUsers(this.currentPage, this.pageSize).then(response => {
+        this.users = response.users
+        this.total = response.total
         this.listLoading = false
         // console.log(this.users)
       })
+    },
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.currentPage = 1
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val
+      // console.log(`当前页: ${this.currentPage}`)
+      // console.log(`每页 ${this.pageSize} 条`)
+      this.fetchUsers()
     }
   }
 }
@@ -58,5 +77,9 @@ export default {
   border-radius 3px
   border 1px solid #ebebeb
   padding 24px
+
+  .page
+    text-align center
+    padding-top 24px
 </style>
 

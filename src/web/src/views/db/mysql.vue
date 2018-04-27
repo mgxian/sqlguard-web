@@ -25,6 +25,10 @@
         </template>
       </el-table-column>
     </el-table>
+    <div v-if="mysqls.length>0" class="page">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+      </el-pagination>
+    </div>
     <el-dialog title="编辑" :visible.sync="dialogEditVisible">
       <el-form v-if="temp" class="form" label-position="left" label-width="80px" :model="temp">
         <el-form-item label="地址">
@@ -120,7 +124,11 @@ export default {
         env: { id: 0 }
       },
       envOptions: [],
-      queryText: ''
+      queryText: '',
+      currentPage: 1,
+      total: 40,
+      pageSizes: [10, 20, 50, 100],
+      pageSize: 10
     }
   },
   created() {
@@ -133,7 +141,8 @@ export default {
     fetchMySQLs() {
       this.listLoading = true
       getMySQLs().then(response => {
-        this.mysqls = response
+        this.mysqls = response.mysqls
+        this.total = response.total
         this.listLoading = false
         // console.log(this.mysqls)
       })
@@ -204,6 +213,16 @@ export default {
         this.dialogDeleteVisible = false
         this.fetchMySQLs()
       })
+    },
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.currentPage = 1
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val
+      // console.log(`当前页: ${this.currentPage}`)
+      // console.log(`每页 ${this.pageSize} 条`)
+      this.fetchUsers()
     }
   }
 }
@@ -219,4 +238,8 @@ export default {
   .table-header
     .search-input
       width 25%
+
+  .page
+    text-align center
+    padding-top 24px
 </style>

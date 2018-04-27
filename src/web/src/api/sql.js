@@ -1,11 +1,13 @@
 import request from '@/utils/request'
 
-export function getMySqls(type) {
+export function getMySqls(type, per_page, page) {
   return request({
     url: '/user/sqls',
     method: 'get',
     params: {
-      type
+      type,
+      'page': page,
+      'per_page': per_page
     }
   })
 }

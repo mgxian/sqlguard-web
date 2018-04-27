@@ -20,6 +20,10 @@
       <el-table-column align="center" prop="result_execute" label="执行结果">
       </el-table-column>
     </el-table>
+    <div v-if="sqls.length>0" class="page">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="pageSizes" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
@@ -37,7 +41,11 @@ export default {
         { name: 'Development', type: 'info' },
         { name: 'Staging', type: 'warning' },
         { name: 'Production', type: 'danger' }
-      ]
+      ],
+      currentPage: 1,
+      total: 40,
+      pageSizes: [10, 20, 50, 100],
+      pageSize: 10
     }
   },
   created() {
@@ -46,11 +54,22 @@ export default {
   methods: {
     fetchSqls() {
       this.listLoading = true
-      getMySqls(TYPE).then(response => {
-        this.sqls = response
+      getMySqls(TYPE, this.pageSize, this.currentPage).then(response => {
+        this.sqls = response.sqls
+        this.total = response.total
         this.listLoading = false
         // console.log(this.sqls)
       })
+    },
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.currentPage = 1
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val
+      // console.log(`当前页: ${this.currentPage}`)
+      // console.log(`每页 ${this.pageSize} 条`)
+      this.fetchSqls()
     }
   }
 }
@@ -77,4 +96,8 @@ export default {
 
   .el-icon-circle-close
     color red
+
+  .page
+    text-align center
+    padding-top 24px
 </style>

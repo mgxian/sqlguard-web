@@ -35,9 +35,9 @@ def internal_server_error(e):
     return ('', 500)
 
 
-@main.app_errorhandler(Exception)
-def all_exception_error(e):
-    logging.debug(str(e))
-    response = jsonify({'msg': '服务器异常'})
-    response.status_code = 500
-    return response
+# @main.app_errorhandler(Exception)
+# def all_exception_error(e):
+#     logging.debug(str(e))
+#     response = jsonify({'msg': '服务器异常'})
+#     response.status_code = 500
+#     return response

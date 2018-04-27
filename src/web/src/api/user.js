@@ -7,10 +7,14 @@ export function getUser(id) {
   })
 }
 
-export function getUsers() {
+export function getUsers(page, per_page) {
   return request({
     url: '/users',
-    method: 'get'
+    method: 'get',
+    params: {
+      page,
+      per_page
+    }
   })
 }
 

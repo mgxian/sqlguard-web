@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.DEBUG)
 @main.route('/envs')
 @jwt_required()
 def get_envs():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     envs = Env.query.paginate(page=page, per_page=per_page).items
     envs_json = EnvSchema(many=True).dump(envs).data
     return jsonify(envs_json)
@@ -28,8 +28,8 @@ def get_envs():
 @main.route('/roles')
 @jwt_required()
 def get_roles():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     roles = Role.query.paginate(page=page, per_page=per_page).items
     roles_json = RoleSchema(many=True).dump(roles).data
     return jsonify(roles_json)
@@ -38,14 +38,16 @@ def get_roles():
 @main.route('/mysqls')
 @jwt_required()
 def get_mysqls():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     env_id = request.args.get('env_id')
     if env_id is None:
-        mysqls = Mysql.query.paginate(page=page, per_page=per_page).items
+        pagination = Mysql.query.paginate(page=page, per_page=per_page)
     else:
-        mysqls = Env.query.get(env_id).mysqls
+        pagination = Mysql.query.filter_by(
+            env_id=env_id).paginate(page=page, per_page=per_page)
 
+    mysqls = pagination.items
     mysqls_json = MysqlSchema(many=True).dump(mysqls).data
     for idx, mysql in enumerate(mysqls):
         mysqls_json[idx]['env'] = {
@@ -53,7 +55,10 @@ def get_mysqls():
             'name': mysql.env.name,
             'name_zh': mysql.env.name_zh
         }
-    return jsonify(mysqls_json)
+    data = {}
+    data['mysqls'] = mysqls_json
+    data['total'] = pagination.total
+    return jsonify(data)
 
 
 @main.route('/mysqls', methods=['POST'])
@@ -157,8 +162,8 @@ def delete_mysql(id):
 @main.route('/mysql/<int:mysql_id>/sqls')
 @jwt_required()
 def get_sqls(mysql_id):
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     mysql = Mysql.query.get_or_404(mysql_id)
     sqls = mysql.sqls.paginate(page=page, per_page=per_page).items
     sqls_json = SqlSchema(many=True).dump(sqls).data
@@ -287,31 +292,32 @@ def assign_role(id):
 @main.route('/user/sqls')
 @jwt_required()
 def get_user_sqls():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     type = request.args.get('type')
     user_id = current_identity.id
     # INCEPTION type
     if type:
         # my applications
         if type == '0':
-            sqls = Sql.query.filter_by(user_id=user_id).filter(
-                Sql.type == SqlType['INCEPTION']).paginate(page=page, per_page=per_page).items
+            pagination = Sql.query.filter_by(user_id=user_id).filter(
+                Sql.type == SqlType['INCEPTION']).paginate(page=page, per_page=per_page)
 
         # need me reviews
         elif type == '1':
-            sqls = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
-                Sql.status == SqlStatus['AUDIT']).paginate(page=page, per_page=per_page).items
+            pagination = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
+                Sql.status == SqlStatus['AUDIT']).paginate(page=page, per_page=per_page)
 
         # my review history
         else:
-            sqls = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
-                Sql.status != SqlStatus['AUDIT']).paginate(page=page, per_page=per_page).items
+            pagination = Sql.query.filter(Sql.type == SqlType['INCEPTION']).filter(Sql.reviewer_id == user_id).filter(
+                Sql.status != SqlStatus['AUDIT']).paginate(page=page, per_page=per_page)
 
     # SQLADVISOR type
     else:
-        sqls = Sql.query.filter_by(user_id=user_id).filter(
-            Sql.type == SqlType['SQLADVISOR']).paginate(page=page, per_page=per_page).items
+        pagination = Sql.query.filter_by(user_id=user_id).filter(
+            Sql.type == SqlType['SQLADVISOR']).paginate(page=page, per_page=per_page)
+    sqls = pagination.items
     sqls_json = SqlSchema(many=True).dump(sqls).data
     for i, sql in enumerate(sqls):
         mysql_tmp = sql.mysql
@@ -327,15 +333,18 @@ def get_user_sqls():
             sqls_json[i]['result'] = '通过'
         if sql.result_execute == '':
             sqls_json[i]['result_execute'] = '成功'
-    return jsonify(sqls_json)
+    data = {}
+    data['sqls'] = sqls_json
+    data['total'] = pagination.total
+    return jsonify(data)
 
 
 @main.route('/sqls')
 @jwt_required()
 @permission_required(Permission.EXECUTE)
 def get_sqls_by_status():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
     status = request.args.get('status')
     if status:
         sqls = Sql.query.filter_by(status=status, type=SqlType['INCEPTION']).paginate(

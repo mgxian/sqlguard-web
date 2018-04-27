@@ -15,9 +15,10 @@ from ..email import send_email
 @auth.route('/users')
 @jwt_required()
 def get_users():
-    page = request.args.get('page', 1)
-    per_page = request.args.get('per_page', 10)
-    users = User.query.paginate(page=page, per_page=per_page).items
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    pagination = User.query.paginate(page=page, per_page=per_page)
+    users = pagination.items
     users_json = UserSchema(many=True).dump(users).data
     for idx, user_json in enumerate(users_json):
         id = user_json['id']
@@ -28,7 +29,11 @@ def get_users():
             'name_zh': user.role.name_zh,
         }
         users_json[idx]['role'] = role
-    return jsonify(users_json)
+
+    data = {}
+    data['users'] = users_json
+    data['total'] = pagination.total
+    return jsonify(data)
 
 
 @auth.route('/users', methods=['POST'])
