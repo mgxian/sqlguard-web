@@ -16,7 +16,8 @@ router.beforeEach((to, from, next) => {
     if (to.path === '/login') {
       next({ path: '/' })
     } else {
-      if (store.getters.role) {
+      // console.log(store.getters.role)
+      if (store.getters.role.id === undefined) {
         store.dispatch('GetInfo').then(res => { // 拉取用户信息
           next()
         }).catch(() => {
